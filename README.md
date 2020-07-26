@@ -7,8 +7,9 @@ A global weather, geographic information, and navigation simulator library, used
 - pthread library (with headers)
 
 ## How to build libProteus (shared library)
-$ make libproteus
+`make libproteus`
 
 ## How to build and run tests
-$ make tests
-$ ./run_tests.sh
+`make tests`
+
+`./run_tests.sh`
