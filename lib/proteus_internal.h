@@ -14,27 +14,9 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef _proteus_Logging_h_
-#define _proteus_Logging_h_
+#ifndef _proteus_internal_h_
+#define _proteus_internal_h_
 
-#include <proteus/proteus.h>
+#define PROTEUS_API __attribute__ ((visibility ("default")))
 
-#ifdef __cplusplus
-extern "C" {
-#endif // __cplusplus
-
-
-/**
- * Specifies if and where to write library logging output
- *
- * Parameters
- * 	logFd [in]: the file descriptor to write logging output to; set to -1 to disable logging
- */
-PROTEUS_API void proteus_Logging_setOutputFd(int logFd);
-
-
-#ifdef __cplusplus
-}
-#endif // __cplusplus
-
-#endif // _proteus_Logging_h_
+#endif // _proteus_internal_h_

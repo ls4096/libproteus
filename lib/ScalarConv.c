@@ -16,22 +16,22 @@
 
 #include <math.h>
 
-#include "proteus/ScalarConv.h"
+#include "proteus_internal.h"
 
+#include "proteus/ScalarConv.h"
 #include "Constants.h"
 
-
-double proteus_ScalarConv_m2nm(double m)
+PROTEUS_API double proteus_ScalarConv_m2nm(double m)
 {
 	return (m / M_IN_NAUTICAL_MILE);
 }
 
-double proteus_ScalarConv_nm2m(double nm)
+PROTEUS_API double proteus_ScalarConv_nm2m(double nm)
 {
 	return (nm * M_IN_NAUTICAL_MILE);
 }
 
-double proteus_ScalarConv_m2dlat(double m, double lat)
+PROTEUS_API double proteus_ScalarConv_m2dlat(double m, double lat)
 {
 	const double rlat = proteus_ScalarConv_deg2rad(lat);
 
@@ -43,7 +43,7 @@ double proteus_ScalarConv_m2dlat(double m, double lat)
 		0.0023 * cos(6 * rlat)));
 }
 
-double proteus_ScalarConv_m2dlon(double m, double lat)
+PROTEUS_API double proteus_ScalarConv_m2dlon(double m, double lat)
 {
 	const double rlat = proteus_ScalarConv_deg2rad(lat);
 
@@ -54,12 +54,12 @@ double proteus_ScalarConv_m2dlon(double m, double lat)
 		0.118 * cos(5 * rlat)));
 }
 
-double proteus_ScalarConv_deg2rad(double deg)
+PROTEUS_API double proteus_ScalarConv_deg2rad(double deg)
 {
 	return (deg / DEG_IN_RAD);
 }
 
-double proteus_ScalarConv_rad2deg(double rad)
+PROTEUS_API double proteus_ScalarConv_rad2deg(double rad)
 {
 	return (rad * DEG_IN_RAD);
 }

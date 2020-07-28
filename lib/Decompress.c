@@ -20,7 +20,7 @@
 #include "Decompress.h"
 #include "ErrLog.h"
 
-#define ERRLOG_ID "Decompress"
+#define ERRLOG_ID "proteus_Decompress"
 
 
 int Decompress_inflate(uint8_t* out, size_t outlen, const char* in, size_t inlen)

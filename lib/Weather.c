@@ -23,10 +23,10 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include "proteus_internal.h"
+
 #include "proteus/Weather.h"
-
 #include "proteus/ScalarConv.h"
-
 #include "Constants.h"
 #include "ErrLog.h"
 
@@ -40,7 +40,7 @@
 // 2 hours, 58 minutes
 #define WX_DATA_PHASE_IN_SECONDS (2 * (60 * 60) + (58 * 60))
 
-#define ERRLOG_ID "Weather"
+#define ERRLOG_ID "proteus_Weather"
 
 
 typedef struct
@@ -90,7 +90,7 @@ static void insertWxGridFrzr(WxGridPoint* wxGrid, int lon, int lat, int frzr);
 static int getLonLatIndex(int lon, int lat);
 
 
-int proteus_Weather_init(const char* f1Dir, const char* f2Dir)
+PROTEUS_API int proteus_Weather_init(const char* f1Dir, const char* f2Dir)
 {
 	if (!f1Dir || !f2Dir)
 	{
@@ -141,7 +141,7 @@ int proteus_Weather_init(const char* f1Dir, const char* f2Dir)
 	return ((_wxGrid0 != 0 && _wxGrid1 != 0) ? 0 : -1);
 }
 
-void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather* wx, bool windOnly)
+PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather* wx, bool windOnly)
 {
 	const int ilon = (int) floor(pos->lon);
 	const int ilat = (int) floor(pos->lat);

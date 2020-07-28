@@ -19,18 +19,22 @@
 
 #include <stdint.h>
 
-#include "proteus/GeoPos.h"
-#include "proteus/GeoVec.h"
+#include <proteus/proteus.h>
+#include <proteus/GeoPos.h>
+#include <proteus/GeoVec.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
 
-#define PROTEUS_WX_COND_RAIN (0x01)
-#define PROTEUS_WX_COND_SNOW (0x02)
-#define PROTEUS_WX_COND_ICEP (0x04)
-#define PROTEUS_WX_COND_FRZR (0x08)
+/**
+ * Various precipitation conditions
+ */
+#define PROTEUS_WX_COND_RAIN (0x01) // Rain
+#define PROTEUS_WX_COND_SNOW (0x02) // Snow
+#define PROTEUS_WX_COND_ICEP (0x04) // Ice pellets
+#define PROTEUS_WX_COND_FRZR (0x08) // Freezing rain
 
 
 /**
@@ -64,7 +68,7 @@ typedef struct
  * 	0, on success
  * 	any other value, on failure
  */
-int proteus_Weather_init(const char* f1Dir, const char* f2Dir);
+PROTEUS_API int proteus_Weather_init(const char* f1Dir, const char* f2Dir);
 
 /**
  * Provides weather information at the given geographical position.
@@ -81,7 +85,7 @@ int proteus_Weather_init(const char* f1Dir, const char* f2Dir);
  * 	true, if ocean data is available and valid at the provided position
  * 	false, if ocean data is not available or not valid at the provided position
  */
-void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather* wx, bool windOnly);
+PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather* wx, bool windOnly);
 
 
 #ifdef __cplusplus

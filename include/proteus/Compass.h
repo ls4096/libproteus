@@ -17,6 +17,8 @@
 #ifndef _proteus_Compass_h_
 #define _proteus_Compass_h_
 
+#include <proteus/proteus.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -37,7 +39,7 @@ extern "C" {
  * Returns the difference in degrees between the two angles,
  * in the range (-180, 180].
  */
-double proteus_Compass_diff(double a, double b);
+PROTEUS_API double proteus_Compass_diff(double a, double b);
 
 
 #ifdef __cplusplus

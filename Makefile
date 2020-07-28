@@ -3,6 +3,7 @@ all: libproteus tests
 libproteus: libproteus.so
 tests: proteus_tests libproteus
 
+
 LIB_OBJS = \
 	lib/Compass.o \
 	lib/Decompress.o \
@@ -24,14 +25,20 @@ TESTS_OBJS = \
 	tests/test_ScalarConv.o \
 	tests/test_Weather.o
 
-%.o: %.c
-	gcc -fPIC -c -Wall -Werror -Iinclude -O2 -o $@ $<
+
+lib/%.o: lib/%.c
+	gcc -fvisibility=hidden -fPIC -c -Wall -Werror -Iinclude -O2 -o $@ $<
 
 libproteus.so: $(LIB_OBJS)
-	gcc -shared -fPIC -O2 -o libproteus.so lib/*.o -lm -lz -lpthread
+	gcc -fvisibility=hidden -shared -fPIC -O2 -o libproteus.so lib/*.o -lm -lz -lpthread
+
+
+tests/%.o: tests/%.c
+	gcc -fPIC -c -Wall -Werror -Iinclude -O2 -o $@ $<
 
 proteus_tests: $(TESTS_OBJS) libproteus.so
-	gcc -fPIC -O2 -o proteus_tests tests/*.o -L. -lproteus
+	gcc -O2 -o proteus_tests tests/*.o -L. -lproteus
+
 
 clean:
 	rm -rf lib/*.o tests/*.o libproteus.so proteus_tests

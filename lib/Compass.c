@@ -14,9 +14,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "proteus_internal.h"
+
 #include "proteus/Compass.h"
 
-double proteus_Compass_diff(double a, double b)
+PROTEUS_API double proteus_Compass_diff(double a, double b)
 {
 	double c = b - a;
 

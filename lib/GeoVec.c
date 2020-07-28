@@ -16,13 +16,13 @@
 
 #include <math.h>
 
+#include "proteus_internal.h"
+
 #include "proteus/GeoVec.h"
-
 #include "proteus/ScalarConv.h"
-
 #include "Constants.h"
 
-void proteus_GeoVec_add(proteus_GeoVec* v, const proteus_GeoVec* w)
+PROTEUS_API void proteus_GeoVec_add(proteus_GeoVec* v, const proteus_GeoVec* w)
 {
 	const double vx = v->mag * sin(proteus_ScalarConv_deg2rad(v->angle));
 	const double vy = v->mag * cos(proteus_ScalarConv_deg2rad(v->angle));

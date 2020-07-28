@@ -17,6 +17,8 @@
 #ifndef _proteus_GeoVec_h_
 #define _proteus_GeoVec_h_
 
+#include <proteus/proteus.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -39,7 +41,7 @@ typedef struct
  * 	v [in/out]: the vector being modified
  * 	w [in]: the vector being added to vector v
  */
-void proteus_GeoVec_add(proteus_GeoVec* v, const proteus_GeoVec* w);
+PROTEUS_API void proteus_GeoVec_add(proteus_GeoVec* v, const proteus_GeoVec* w);
 
 
 #ifdef __cplusplus

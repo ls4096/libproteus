@@ -14,17 +14,18 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ErrLog.h"
-
-#include "proteus/Logging.h"
-
 #include <stdarg.h>
 #include <stdio.h>
 #include <time.h>
 
+#include "proteus_internal.h"
+
+#include "proteus/Logging.h"
+#include "ErrLog.h"
+
 static int _logFd = -1;
 
-void proteus_Logging_setOutputFd(int logFd)
+PROTEUS_API void proteus_Logging_setOutputFd(int logFd)
 {
 	_logFd = logFd;
 }

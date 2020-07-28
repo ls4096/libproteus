@@ -23,10 +23,10 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include "proteus_internal.h"
+
 #include "proteus/Ocean.h"
-
 #include "proteus/ScalarConv.h"
-
 #include "Constants.h"
 #include "ErrLog.h"
 
@@ -40,7 +40,7 @@
 // 11 hours, 58 minutes
 #define OCEAN_DATA_PHASE_IN_SECONDS (11 * (60 * 60) + (58 * 60))
 
-#define ERRLOG_ID "Ocean"
+#define ERRLOG_ID "proteus_Ocean"
 
 
 typedef struct

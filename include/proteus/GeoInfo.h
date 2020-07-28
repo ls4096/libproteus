@@ -19,7 +19,8 @@
 
 #include <stdbool.h>
 
-#include "proteus/GeoPos.h"
+#include <proteus/proteus.h>
+#include <proteus/GeoPos.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,7 +37,7 @@ extern "C" {
  * 	0, on success
  * 	any other value, on failure
  */
-int proteus_GeoInfo_init(const char* dataDir);
+PROTEUS_API int proteus_GeoInfo_init(const char* dataDir);
 
 /**
  * Indicates whether or not water is present at the given geographical position.
@@ -48,7 +49,7 @@ int proteus_GeoInfo_init(const char* dataDir);
  * 	true, if on water
  * 	false, if on land
  */
-bool proteus_GeoInfo_isWater(const proteus_GeoPos* pos);
+PROTEUS_API bool proteus_GeoInfo_isWater(const proteus_GeoPos* pos);
 
 
 #ifdef __cplusplus

@@ -22,8 +22,9 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "proteus/GeoInfo.h"
+#include "proteus_internal.h"
 
+#include "proteus/GeoInfo.h"
 #include "Decompress.h"
 #include "ErrLog.h"
 
@@ -34,7 +35,7 @@
 #define GRID_PRUNER_INTERVAL (60 * 60)
 #define GRID_PRUNER_EXPIRY (6 * 60 * 60)
 
-#define ERRLOG_ID "GeoInfo"
+#define ERRLOG_ID "proteus_GeoInfo"
 
 
 typedef struct
@@ -58,7 +59,7 @@ static pthread_t _gridPrunerThread;
 static void* gridPrunerMain(void* arg);
 
 
-int proteus_GeoInfo_init(const char* dataDir)
+PROTEUS_API int proteus_GeoInfo_init(const char* dataDir)
 {
 	if (!dataDir)
 	{
@@ -89,7 +90,7 @@ int proteus_GeoInfo_init(const char* dataDir)
 	return 0;
 }
 
-bool proteus_GeoInfo_isWater(const proteus_GeoPos* pos)
+PROTEUS_API bool proteus_GeoInfo_isWater(const proteus_GeoPos* pos)
 {
 	const int ilon = (int) floor(pos->lon);
 	const int ilat = (int) floor(pos->lat);

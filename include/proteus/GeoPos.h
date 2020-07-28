@@ -17,7 +17,8 @@
 #ifndef _proteus_GeoPos_h_
 #define _proteus_GeoPos_h_
 
-#include "proteus/GeoVec.h"
+#include <proteus/proteus.h>
+#include <proteus/GeoVec.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,7 +41,7 @@ typedef struct
  * 	p [in/out]: the position being modified
  * 	v [in]: the vector being added to position p
  */
-void proteus_GeoPos_advance(proteus_GeoPos* p, const proteus_GeoVec* v);
+PROTEUS_API void proteus_GeoPos_advance(proteus_GeoPos* p, const proteus_GeoVec* v);
 
 
 #ifdef __cplusplus

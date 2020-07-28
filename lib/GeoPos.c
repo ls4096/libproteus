@@ -16,13 +16,13 @@
 
 #include <math.h>
 
-#include "proteus/GeoPos.h"
+#include "proteus_internal.h"
 
+#include "proteus/GeoPos.h"
 #include "proteus/GeoVec.h"
 #include "proteus/ScalarConv.h"
 
-
-void proteus_GeoPos_advance(proteus_GeoPos* p, const proteus_GeoVec* v)
+PROTEUS_API void proteus_GeoPos_advance(proteus_GeoPos* p, const proteus_GeoVec* v)
 {
 	const double vx = v->mag * sin(proteus_ScalarConv_deg2rad(v->angle));
 	const double vy = v->mag * cos(proteus_ScalarConv_deg2rad(v->angle));

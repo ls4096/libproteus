@@ -19,8 +19,9 @@
 
 #include <stdbool.h>
 
-#include "proteus/GeoPos.h"
-#include "proteus/GeoVec.h"
+#include <proteus/proteus.h>
+#include <proteus/GeoPos.h>
+#include <proteus/GeoVec.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,7 +53,7 @@ typedef struct
  * 	0, on success
  * 	any other value, on failure
  */
-int proteus_Ocean_init(const char* f1File, const char* f2File);
+PROTEUS_API int proteus_Ocean_init(const char* f1File, const char* f2File);
 
 /**
  * Provides ocean information, if available, at the given geographical position.
@@ -65,7 +66,7 @@ int proteus_Ocean_init(const char* f1File, const char* f2File);
  * 	true, if ocean data is available and valid at the provided position
  * 	false, if ocean data is not available or not valid at the provided position
  */
-bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData* od);
+PROTEUS_API bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData* od);
 
 
 #ifdef __cplusplus
