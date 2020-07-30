@@ -13,7 +13,8 @@ LIB_OBJS = \
 	lib/GeoVec.o \
 	lib/Ocean.o \
 	lib/ScalarConv.o \
-	lib/Weather.o
+	lib/Weather.o \
+	lib/proteus.o
 
 TESTS_OBJS = \
 	tests/tests_main.o \

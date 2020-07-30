@@ -16,6 +16,8 @@
 
 #include <stdio.h>
 
+#include <proteus/proteus.h>
+
 #include "tests.h"
 
 typedef int (*test_func)(void);
@@ -44,6 +46,8 @@ int main(int argc, char** argv)
 {
 	int testres;
 	int sum = 0;
+
+	printf("Running tests for libproteus v%s\n", proteus_getVersionString());
 
 	for (int i = 0; i < (sizeof(TEST_NAMES) / sizeof(const char*)); i++)
 	{

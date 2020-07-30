@@ -21,4 +21,34 @@
 #define PROTEUS_API
 #endif // PROTEUS_API
 
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
+
+
+/**
+ * Returns the library major version number, as an integer.
+ */
+PROTEUS_API int proteus_getVersionMajor();
+
+/**
+ * Returns the library minor version number, as an integer.
+ */
+PROTEUS_API int proteus_getVersionMinor();
+
+/**
+ * Returns the library patch version number, as an integer.
+ */
+PROTEUS_API int proteus_getVersionPatch();
+
+/**
+ * Returns the complete library version number, as a string.
+ */
+PROTEUS_API const char* proteus_getVersionString();
+
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
+
 #endif // _proteus_proteus_h_
