@@ -361,7 +361,7 @@ bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData* od)
 	}
 
 
-	const double xFrac = (pos->lon * 2.5) - ((double) (ilon - 450));
+	const double xFrac = (ilon == 0 && pos->lon == 180.0) ? 0.0 : (pos->lon * 2.5) - ((double) (ilon - 450));
 	const double yFrac = (pos->lat * 2.5) - ((double) (ilat - 196));
 
 	const long tDiff = _oceanGridPhaseTime - time(0);
@@ -587,8 +587,8 @@ static void insertOceanGridPoint(OceanGridPoint* oceanGrid, float lon, float lat
 		lon -= 360.0;
 	}
 
-	int ilon = ((int) round(lon * 2.5)) + 450;
-	int ilat = ((int) round(lat * 2.5)) + 196;
+	int ilon = ((int) roundf(lon * 2.5f)) + 450;
+	int ilat = ((int) roundf(lat * 2.5f)) + 196;
 
 	if (ilat < 0 || ilat >= OCEAN_GRID_Y)
 	{

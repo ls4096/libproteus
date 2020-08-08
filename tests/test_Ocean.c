@@ -49,14 +49,44 @@ int test_Ocean_run()
 	IS_TRUE(proteus_Ocean_get(&p, &od));
 	EQUALS_FLT(28.003f, od.surfaceTemp);
 	EQUALS_FLT(35.396f, od.salinity);
-	EQUALS_FLT(0.0, od.ice);
+	EQUALS_FLT(0.0f, od.ice);
 
 	p.lat = -65.2;
 	p.lon = 70.4;
 	IS_TRUE(proteus_Ocean_get(&p, &od));
 	EQUALS_FLT(-1.814f, od.surfaceTemp);
 	EQUALS_FLT(33.737f, od.salinity);
-	EQUALS_FLT(100.0, od.ice);
+	EQUALS_FLT(100.0f, od.ice);
+
+
+	p.lat = -36.0;
+	p.lon = 0.0;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT(14.381f, od.surfaceTemp);
+	EQUALS_FLT(35.138f, od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
+
+	p.lat = -36.0;
+	p.lon = -0.0;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT(14.381f, od.surfaceTemp);
+	EQUALS_FLT(35.138f, od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
+
+
+	p.lat = -36.0;
+	p.lon = -180.0;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT(15.617f, od.surfaceTemp);
+	EQUALS_FLT(35.442f, od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
+
+	p.lat = -36.0;
+	p.lon = 180.0;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT(15.617f, od.surfaceTemp);
+	EQUALS_FLT(35.442f, od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
 
 
 	return 0;
