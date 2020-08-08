@@ -55,12 +55,17 @@ typedef struct
 	uint8_t cond; // Precipitation conditions (rain, snow, ice pellets, freezing rain)
 } proteus_Weather;
 
+#define PROTEUS_WEATHER_SOURCE_DATA_GRID_1P00 (0) // 1.00 degree grid
+#define PROTEUS_WEATHER_SOURCE_DATA_GRID_0P50 (1) // 0.50 degree grid
+#define PROTEUS_WEATHER_SOURCE_DATA_GRID_0P25 (2) // 0.25 degree grid
+
 /**
  * Initializes the weather processing system.
  *
  * Assumes two forecast points, 3 hours apart (used for temporal interpolation).
  *
  * Parameters
+ * 	sourceDataGrid [in]: the source data grid resolution
  * 	f1Dir [in]: the path to the directory with the first forecast point data
  * 	f2Dir [in]: the path to the directory with the second forecast point data
  *
@@ -68,7 +73,7 @@ typedef struct
  * 	0, on success
  * 	any other value, on failure
  */
-PROTEUS_API int proteus_Weather_init(const char* f1Dir, const char* f2Dir);
+PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, const char* f2Dir);
 
 /**
  * Provides weather information at the given geographical position.
