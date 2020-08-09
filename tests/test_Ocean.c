@@ -22,6 +22,8 @@
 #define OCEAN_DATA_FILE_1 "./test_data/ocean/f1.csv"
 #define OCEAN_DATA_FILE_2 "./test_data/ocean/f1.csv"
 
+static int test_spatial_interpolation();
+
 int test_Ocean_run()
 {
 	// TODO: Need a more complete test. This just sanity checks that we read the data,
@@ -88,6 +90,88 @@ int test_Ocean_run()
 	EQUALS_FLT(35.442f, od.salinity);
 	EQUALS_FLT(0.0f, od.ice);
 
+
+	if (test_spatial_interpolation() != 0)
+	{
+		return 1;
+	}
+
+
+	return 0;
+}
+
+static int test_spatial_interpolation()
+{
+	// Some basic spatial interpolation checks
+
+	proteus_GeoPos p;
+	proteus_OceanData od;
+
+
+	// A
+	p.lat = -40.0;
+	p.lon = 20.0;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT(13.612f, od.surfaceTemp);
+	EQUALS_FLT(35.079f, od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
+
+	// B
+	p.lat = -40.0;
+	p.lon = 20.4;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT(14.009f, od.surfaceTemp);
+	EQUALS_FLT(35.055f, od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
+
+	// C
+	p.lat = -40.4;
+	p.lon = 20.0;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT(14.531f, od.surfaceTemp);
+	EQUALS_FLT(35.112f, od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
+
+	// D
+	p.lat = -40.4;
+	p.lon = 20.4;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT(14.433f, od.surfaceTemp);
+	EQUALS_FLT(35.09f, od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
+
+
+	// 0.75A + 0.25B
+	p.lat = -40.0;
+	p.lon = 20.1;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT((13.612f * 0.75f) + (14.009f * 0.25f), od.surfaceTemp);
+	EQUALS_FLT((35.079f * 0.75f) + (35.055f * 0.25f), od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
+
+	// 0.75A + 0.25C
+	p.lat = -40.1;
+	p.lon = 20.0;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT((13.612f * 0.75f) + (14.531f * 0.25f), od.surfaceTemp);
+	EQUALS_FLT((35.079f * 0.75f) + (35.112f * 0.25f), od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
+
+	// 0.75C + 0.25D
+	p.lat = -40.4;
+	p.lon = 20.1;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT((14.531f * 0.75f) + (14.433f * 0.25f), od.surfaceTemp);
+	EQUALS_FLT((35.112f * 0.75f) + (35.09f * 0.25f), od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
+
+	// 0.75 * (0.75A + 0.25B) + 0.25 * (0.75C + 0.25D)
+	p.lat = -40.1;
+	p.lon = 20.1;
+	IS_TRUE(proteus_Ocean_get(&p, &od));
+	EQUALS_FLT(((13.612f * 0.75f) + (14.009f * 0.25f)) * 0.75f + ((14.531f * 0.75f) + (14.433f * 0.25f)) * 0.25f, od.surfaceTemp);
+	EQUALS_FLT(((35.079f * 0.75f) + (35.055f * 0.25f)) * 0.75f + ((35.112f * 0.75f) + (35.09f * 0.25f)) * 0.25f, od.salinity);
+	EQUALS_FLT(0.0f, od.ice);
 
 	return 0;
 }
