@@ -236,6 +236,8 @@ static void* gridPrunerMain(void* arg)
 {
 	for (;;)
 	{
+		sleep(GRID_PRUNER_INTERVAL);
+
 		ERRLOG("Grid pruner starting...");
 
 		unsigned int loadedCount = 0;
@@ -275,8 +277,6 @@ static void* gridPrunerMain(void* arg)
 		}
 
 		ERRLOG3("Grid pruner done. loaded=%u, gridded=%u, retained=%u", loadedCount, griddedCount, retainedCount);
-
-		sleep(GRID_PRUNER_INTERVAL);
 	}
 
 	return 0;
