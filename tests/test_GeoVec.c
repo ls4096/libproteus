@@ -89,6 +89,80 @@ int test_GeoVec_run()
 	}
 
 
+	// Negative-magnitude vector added to half its opposite (with positive magnitude)
+	// should result in half its original magnitude (positive sign magnitude but with opposite angle).
+	for (double a = 0.0; a < 360.0; a += 3.7)
+	{
+		for (double m = 0.1; m < 10.0; m += 0.27)
+		{
+			v.angle = a;
+			v.mag = -m; // "Negative" magnitude
+
+			vCopy.angle = v.angle; // Same angle
+			vCopy.mag = 0.5 * m; // Positive magnitude (half the original)
+
+			proteus_GeoVec_add(&v, &vCopy);
+
+			// This updated vCopy (opposite angle, same magnitude) is what we expect to have for updated v after adding original vCopy to original v...
+			vCopy.angle += 180.0;
+			if (vCopy.angle > 360.0)
+			{
+				vCopy.angle -= 360.0;
+			}
+
+			EQUALS_DBL(v.angle, vCopy.angle);
+			EQUALS_DBL(v.mag, vCopy.mag);
+		}
+	}
+
+
+	// Negative-magnitude vector added to 1.5x its opposite (with positive magnitude)
+	// should result in half its original magnitude (positive sign magnitude with same angle).
+	for (double a = 0.0; a < 360.0; a += 3.7)
+	{
+		for (double m = 0.1; m < 10.0; m += 0.27)
+		{
+			v.angle = a;
+			v.mag = -m; // "Negative" magnitude
+
+			vCopy.angle = v.angle; // Same angle
+			vCopy.mag = 1.5 * m; // Positive magnitude (1.5x the original)
+
+			proteus_GeoVec_add(&v, &vCopy);
+
+			// This updated vCopy (same angle, half its magnitude but positive) is what we expect to have for updated v after adding original vCopy to original v...
+			vCopy.mag = 0.5 * m;
+
+			EQUALS_DBL(v.angle, vCopy.angle);
+			EQUALS_DBL(v.mag, vCopy.mag);
+		}
+	}
+
+
+	// Vector addition should be commutative.
+	for (double a0 = 0.0; a0 < 360.0; a0 += 3.7)
+	{
+		for (double m0 = 0.1; m0 < 10.0; m0 += 0.27)
+		{
+			for (double a1 = 0.0; a1 < 360.0; a1 += 3.7)
+			{
+				for (double m1 = 0.1; m1 < 10.0; m1 += 1.13)
+				{
+					proteus_GeoVec v0 = { .angle = a0, .mag = m0 };
+					proteus_GeoVec v1 = { .angle = a1, .mag = m1 };
+					proteus_GeoVec v2 = { .angle = a1, .mag = m1 };
+
+					proteus_GeoVec_add(&v1, &v0);
+					proteus_GeoVec_add(&v0, &v2);
+
+					EQUALS_DBL(v0.angle, v1.angle);
+					EQUALS_DBL(v0.mag, v1.mag);
+				}
+			}
+		}
+	}
+
+
 	// Northward pointing vector added to its mirror (through y axis) should result in zero angle.
 	for (double a = 0.0; a < 360.0; a += 3.7)
 	{
