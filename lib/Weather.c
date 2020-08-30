@@ -79,6 +79,7 @@ typedef struct
 {
 	float windU; // m/s
 	float windV; // m/s
+	float windGust; // m/s
 
 	float temp; // K
 	float dewpoint; // K
@@ -118,6 +119,7 @@ static int readWxPointI(char* s, float* x, float* y, int* n);
 
 static void insertWxGridUgrd(WxGridPoint* wxGrid, float lon, float lat, float ugrd);
 static void insertWxGridVgrd(WxGridPoint* wxGrid, float lon, float lat, float vgrd);
+static void insertWxGridGust(WxGridPoint* wxGrid, float lon, float lat, float gust);
 static void insertWxGridTmp(WxGridPoint* wxGrid, float lon, float lat, float tmp);
 static void insertWxGridDpt(WxGridPoint* wxGrid, float lon, float lat, float dpt);
 static void insertWxGridPres(WxGridPoint* wxGrid, float lon, float lat, float pres);
@@ -336,6 +338,25 @@ PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 
 	wx->wind.mag = sqrt((windU * windU) + (windV * windV));
 
+
+	const double wgust0_0 = (wxGridPtA0->windGust * (1.0 - xFrac)) + (wxGridPtB0->windGust * xFrac);
+	const double wgust1_0 = (wxGridPtC0->windGust * (1.0 - xFrac)) + (wxGridPtD0->windGust * xFrac);
+	const double wgust_0 = (wgust0_0 * (1.0 - yFrac)) + (wgust1_0 * yFrac);
+
+	const double wgust0_1 = (wxGridPtA1->windGust * (1.0 - xFrac)) + (wxGridPtB1->windGust * xFrac);
+	const double wgust1_1 = (wxGridPtC1->windGust * (1.0 - xFrac)) + (wxGridPtD1->windGust * xFrac);
+	const double wgust_1 = (wgust0_1 * (1.0 - yFrac)) + (wgust1_1 * yFrac);
+
+	wx->windGust = (wgust_0 * (1.0 - tFrac)) + (wgust_1 * tFrac);
+
+	// In the unlikely event that the gust speed here is less than the wind vector's magnitude,
+	// set the gust speed to the wind vector magnitude's value.
+	if (wx->windGust < wx->wind.mag)
+	{
+		wx->windGust = wx->wind.mag;
+	}
+
+
 	if (windOnly)
 	{
 		goto done;
@@ -490,6 +511,25 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		}
 
 		insertWxGridVgrd(wxGrid, x, y, f);
+	}
+	fclose(fp);
+
+	// gust
+	sprintf(filePath, "%s/%s", wxDataDirPath, "gust.csv");
+	fp = fopen(filePath, "r");
+	if (fp == 0)
+	{
+		goto fail;
+	}
+
+	while (fgets(buf, 256, fp) == buf)
+	{
+		if (readWxPointF(buf, &x, &y, &f) != 0)
+		{
+			goto fail;
+		}
+
+		insertWxGridGust(wxGrid, x, y, f);
 	}
 	fclose(fp);
 
@@ -780,6 +820,11 @@ static void insertWxGridUgrd(WxGridPoint* wxGrid, float lon, float lat, float ug
 static void insertWxGridVgrd(WxGridPoint* wxGrid, float lon, float lat, float vgrd)
 {
 	wxGrid[getLonLatIndexForInsert(lon, lat)].windV = vgrd;
+}
+
+static void insertWxGridGust(WxGridPoint* wxGrid, float lon, float lat, float gust)
+{
+	wxGrid[getLonLatIndexForInsert(lon, lat)].windGust = gust;
 }
 
 static void insertWxGridTmp(WxGridPoint* wxGrid, float lon, float lat, float tmp)

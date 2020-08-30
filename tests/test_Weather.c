@@ -26,7 +26,7 @@ static int test_grid_0p25();
 int test_Weather_run()
 {
 	// TODO: Need more complete tests. These just perform some basic sanity checks that we read the data,
-	//       and that some of the weather items were filled in correctly (temperature and dewpoint).
+	//       and that some of the weather items were filled in correctly (mostly just temperature and dewpoint).
 
 	if (test_grid_1p00() != 0)
 	{
@@ -68,18 +68,21 @@ static int test_grid_1p00()
 	proteus_Weather_get(&p, &wx, false);
 	EQUALS_FLT(293.161f - 273.15f, wx.temp);
 	EQUALS_FLT(290.822f - 273.15f, wx.dewpoint);
+	EQUALS_FLT(12.166f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = -180.0;
 	proteus_Weather_get(&p, &wx, false);
 	EQUALS_FLT(246.061f - 273.15f, wx.temp);
 	EQUALS_FLT(243.322f - 273.15f, wx.dewpoint);
+	EQUALS_FLT(18.066f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = 180.0;
 	proteus_Weather_get(&p, &wx, false);
 	EQUALS_FLT(246.061f - 273.15f, wx.temp);
 	EQUALS_FLT(243.322f - 273.15f, wx.dewpoint);
+	EQUALS_FLT(18.066f, wx.windGust);
 
 
 	if (test_spatial_interpolation_1p00() != 0)
@@ -171,18 +174,21 @@ static int test_grid_0p50()
 	proteus_Weather_get(&p, &wx, false);
 	EQUALS_FLT(294.2f - 273.15f, wx.temp);
 	EQUALS_FLT(293.778f - 273.15f, wx.dewpoint);
+	EQUALS_FLT(11.3767f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = -180.0;
 	proteus_Weather_get(&p, &wx, false);
 	EQUALS_FLT(245.3f - 273.15f, wx.temp);
 	EQUALS_FLT(241.278f - 273.15f, wx.dewpoint);
+	EQUALS_FLT(21.1767f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = 180.0;
 	proteus_Weather_get(&p, &wx, false);
 	EQUALS_FLT(245.3f - 273.15f, wx.temp);
 	EQUALS_FLT(241.278f - 273.15f, wx.dewpoint);
+	EQUALS_FLT(21.1767f, wx.windGust);
 
 
 	if (test_spatial_interpolation_0p50() != 0)
@@ -274,18 +280,21 @@ static int test_grid_0p25()
 	proteus_Weather_get(&p, &wx, false);
 	EQUALS_FLT(294.533f - 273.15f, wx.temp);
 	EQUALS_FLT(290.04f - 273.15f, wx.dewpoint);
+	EQUALS_FLT(4.02764f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = -180.0;
 	proteus_Weather_get(&p, &wx, false);
 	EQUALS_FLT(244.333f - 273.15f, wx.temp);
 	EQUALS_FLT(240.74f - 273.15f, wx.dewpoint);
+	EQUALS_FLT(17.8276f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = 180.0;
 	proteus_Weather_get(&p, &wx, false);
 	EQUALS_FLT(244.333f - 273.15f, wx.temp);
 	EQUALS_FLT(240.74f - 273.15f, wx.dewpoint);
+	EQUALS_FLT(17.8276f, wx.windGust);
 
 
 	if (test_spatial_interpolation_0p25() != 0)

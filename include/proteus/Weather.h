@@ -45,6 +45,7 @@ typedef struct
 	proteus_GeoVec wind; // Wind vector, using metres/second for magnitude
 	                     // NOTE: Angle indicates direction wind is blowing FROM.
 
+	float windGust; // Wind gust speed, in metres/second.
 	float temp; // Temperature, in degrees Celsius
 	float dewpoint; // Dew point temperature, in degrees Celsius
 	float pressure; // Mean sea level pressure, in hectoPascals (hPa)
@@ -81,7 +82,7 @@ PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, cons
  * Parameters
  * 	pos [in]: the geographical position to be queried
  * 	wx [out]: the weather data structure to be populated
- * 	windOnly [in]: whether to supply only wind data
+ * 	windOnly [in]: whether to supply only wind data (wind vector and gust speed)
  * 	               Setting this to true is useful as an optimization if only
  * 	               wind data is required, as the other values will not be
  * 	               unnecessarily computed.

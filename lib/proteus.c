@@ -19,8 +19,8 @@
 #include "proteus/proteus.h"
 
 #define PROTEUS_VERSION_MAJOR 0
-#define PROTEUS_VERSION_MINOR 2
-#define PROTEUS_VERSION_PATCH 1
+#define PROTEUS_VERSION_MINOR 3
+#define PROTEUS_VERSION_PATCH 0
 
 #define STRX(x) #x
 #define STR(x) STRX(x)
