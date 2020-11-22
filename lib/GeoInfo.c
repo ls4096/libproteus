@@ -28,6 +28,8 @@
 #include "Decompress.h"
 #include "ErrLog.h"
 
+#define ERRLOG_ID "proteus_GeoInfo"
+
 
 #define SQ_DEG_GRID_SIZE (450 * 3600)
 #define NUM_GRIDS (360 * 181)
@@ -35,7 +37,7 @@
 #define GRID_PRUNER_INTERVAL (60 * 60)
 #define GRID_PRUNER_EXPIRY (6 * 60 * 60)
 
-#define ERRLOG_ID "proteus_GeoInfo"
+#define GEO_INFO_DATA_PATH_MAXLEN (4096 - 64)
 
 
 typedef struct
@@ -62,6 +64,11 @@ static void* gridPrunerMain(void* arg);
 PROTEUS_API int proteus_GeoInfo_init(const char* dataDir)
 {
 	if (!dataDir)
+	{
+		return -3;
+	}
+
+	if (strlen(dataDir) >= GEO_INFO_DATA_PATH_MAXLEN)
 	{
 		return -3;
 	}
@@ -132,7 +139,7 @@ static int getLonLatIndex(int lon, int lat)
 
 static void loadSquareDegree(SquareDegree* sd, int ilon, int ilat)
 {
-	char filename[1024];
+	char filename[GEO_INFO_DATA_PATH_MAXLEN + 64];
 
 	char ns = 'N';
 	char ew = 'E';
@@ -149,7 +156,7 @@ static void loadSquareDegree(SquareDegree* sd, int ilon, int ilat)
 		ilat = -ilat;
 	}
 
-	sprintf(filename, "%s/%c%02d%c%03d.gz", _dataDir, ns, ilat, ew, ilon);
+	snprintf(filename, GEO_INFO_DATA_PATH_MAXLEN + 64, "%s/%c%02d%c%03d.gz", _dataDir, ns, ilat, ew, ilon);
 
 	char* fileData = 0;
 	uint8_t* newGrid = 0;

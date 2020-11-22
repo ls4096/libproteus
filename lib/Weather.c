@@ -489,7 +489,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 
 
 	// ugrd
-	sprintf(filePath, "%s/%s", wxDataDirPath, "ugrd.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "ugrd.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -508,7 +508,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// vgrd
-	sprintf(filePath, "%s/%s", wxDataDirPath, "vgrd.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "vgrd.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -527,7 +527,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// gust
-	sprintf(filePath, "%s/%s", wxDataDirPath, "gust.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "gust.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -546,7 +546,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// tmp
-	sprintf(filePath, "%s/%s", wxDataDirPath, "tmp.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "tmp.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -565,7 +565,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// dpt
-	sprintf(filePath, "%s/%s", wxDataDirPath, "dpt.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "dpt.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -584,7 +584,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// pres
-	sprintf(filePath, "%s/%s", wxDataDirPath, "pres.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "pres.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -603,7 +603,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// cld
-	sprintf(filePath, "%s/%s", wxDataDirPath, "cld.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "cld.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -622,7 +622,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// vis
-	sprintf(filePath, "%s/%s", wxDataDirPath, "vis.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "vis.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -641,7 +641,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// prate
-	sprintf(filePath, "%s/%s", wxDataDirPath, "prate.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "prate.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -660,7 +660,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// rain
-	sprintf(filePath, "%s/%s", wxDataDirPath, "rain.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "rain.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -679,7 +679,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// snow
-	sprintf(filePath, "%s/%s", wxDataDirPath, "snow.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "snow.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -698,7 +698,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// icep
-	sprintf(filePath, "%s/%s", wxDataDirPath, "icep.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "icep.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
@@ -717,7 +717,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	fclose(fp);
 
 	// frzr
-	sprintf(filePath, "%s/%s", wxDataDirPath, "frzr.csv");
+	snprintf(filePath, WX_GRID_FILE_PATH_MAXLEN + 64, "%s/%s", wxDataDirPath, "frzr.csv");
 	fp = fopen(filePath, "r");
 	if (fp == 0)
 	{
