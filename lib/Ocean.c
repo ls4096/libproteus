@@ -30,6 +30,8 @@
 #include "Constants.h"
 #include "ErrLog.h"
 
+#define ERRLOG_ID "proteus_Ocean"
+
 
 // NOTE: This module currently makes some fixed assumptions about the grid dimensions
 //       and time between forecast points (for blending).
@@ -39,8 +41,6 @@
 
 // 11 hours, 58 minutes
 #define OCEAN_DATA_PHASE_IN_SECONDS (11 * (60 * 60) + (58 * 60))
-
-#define ERRLOG_ID "proteus_Ocean"
 
 
 typedef struct
@@ -459,6 +459,7 @@ done:
 	return ret;
 }
 
+#define OCEAN_GRID_PARSE_BUF_SIZE (256)
 
 static void updateOceanGrid(int grid, const char* oceanDataPath)
 {
@@ -476,7 +477,7 @@ static void updateOceanGrid(int grid, const char* oceanDataPath)
 	}
 
 	FILE* fp;
-	char buf[256];
+	char buf[OCEAN_GRID_PARSE_BUF_SIZE];
 
 	float x, y;
 	float u, v, temp, salinity;
@@ -488,7 +489,7 @@ static void updateOceanGrid(int grid, const char* oceanDataPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, OCEAN_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readOceanPoint(buf, &x, &y, &temp, &u, &v, &salinity) != 0)
 		{

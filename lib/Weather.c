@@ -32,10 +32,13 @@
 
 #define ERRLOG_ID "proteus_Weather"
 
+
 // NOTE: This module currently makes some fixed assumptions about the time between forecast points (for blending).
 
 // 2 hours, 58 minutes
 #define WX_DATA_PHASE_IN_SECONDS (2 * (60 * 60) + (58 * 60))
+
+#define WX_GRID_FILE_PATH_MAXLEN (4096 - 64)
 
 
 typedef struct
@@ -147,6 +150,13 @@ PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, cons
 	{
 		return -3;
 	}
+
+	if (strlen(f1Dir) >= WX_GRID_FILE_PATH_MAXLEN ||
+			strlen(f2Dir) >= WX_GRID_FILE_PATH_MAXLEN)
+	{
+		return -3;
+	}
+
 
 	if (_gridConf)
 	{
@@ -452,6 +462,8 @@ done:
 }
 
 
+#define WX_GRID_PARSE_BUF_SIZE (256)
+
 static void updateWxGrid(int grid, const char* wxDataDirPath)
 {
 	WxGridPoint* wxGrid = (WxGridPoint*) malloc(_gridConf->gridX * _gridConf->gridY * sizeof(WxGridPoint));
@@ -468,8 +480,8 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	}
 
 	FILE* fp;
-	char buf[256];
-	char filePath[1024];
+	char buf[WX_GRID_PARSE_BUF_SIZE];
+	char filePath[WX_GRID_FILE_PATH_MAXLEN + 64];
 
 	float x, y;
 	int n;
@@ -484,7 +496,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointF(buf, &x, &y, &f) != 0)
 		{
@@ -503,7 +515,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointF(buf, &x, &y, &f) != 0)
 		{
@@ -522,7 +534,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointF(buf, &x, &y, &f) != 0)
 		{
@@ -541,7 +553,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointF(buf, &x, &y, &f) != 0)
 		{
@@ -560,7 +572,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointF(buf, &x, &y, &f) != 0)
 		{
@@ -579,7 +591,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointF(buf, &x, &y, &f) != 0)
 		{
@@ -598,7 +610,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointI(buf, &x, &y, &n) != 0)
 		{
@@ -617,7 +629,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointF(buf, &x, &y, &f) != 0)
 		{
@@ -636,7 +648,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointF(buf, &x, &y, &f) != 0)
 		{
@@ -655,7 +667,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointI(buf, &x, &y, &n) != 0)
 		{
@@ -674,7 +686,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointI(buf, &x, &y, &n) != 0)
 		{
@@ -693,7 +705,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointI(buf, &x, &y, &n) != 0)
 		{
@@ -712,7 +724,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		goto fail;
 	}
 
-	while (fgets(buf, 256, fp) == buf)
+	while (fgets(buf, WX_GRID_PARSE_BUF_SIZE, fp) == buf)
 	{
 		if (readWxPointI(buf, &x, &y, &n) != 0)
 		{
