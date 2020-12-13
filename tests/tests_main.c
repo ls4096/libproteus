@@ -29,6 +29,7 @@ static const char* TEST_NAMES[] = {
 	"GeoVec",
 	"Ocean",
 	"ScalarConv",
+	"Wave",
 	"Weather"
 };
 
@@ -39,6 +40,7 @@ static const test_func TEST_FUNCS[] = {
 	&test_GeoVec_run,
 	&test_Ocean_run,
 	&test_ScalarConv_run,
+	&test_Wave_run,
 	&test_Weather_run
 };
 

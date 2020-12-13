@@ -23,6 +23,7 @@ int test_GeoPos_run();
 int test_GeoVec_run();
 int test_Ocean_run();
 int test_ScalarConv_run();
+int test_Wave_run();
 int test_Weather_run();
 
 #endif // _tests_h_
