@@ -86,10 +86,6 @@ PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, cons
  * 	               Setting this to true is useful as an optimization if only
  * 	               wind data is required, as the other values will not be
  * 	               unnecessarily computed.
- *
- * Returns
- * 	true, if ocean data is available and valid at the provided position
- * 	false, if ocean data is not available or not valid at the provided position
  */
 PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather* wx, bool windOnly);
 
