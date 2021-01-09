@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2021 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@
 #include "ErrLog.h"
 
 #define ERRLOG_ID "proteus_Weather"
+#define UPDATER_THREAD_NAME "proteus_Weather"
 
 
 // NOTE: This module currently makes some fixed assumptions about the time between forecast points (for blending).
@@ -218,6 +219,13 @@ PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, cons
 		rc = -2;
 		goto fail;
 	}
+
+#if defined(_GNU_SOURCE) && defined(__GLIBC__)
+	if (0 != pthread_setname_np(_wxUpdaterThread, UPDATER_THREAD_NAME))
+	{
+		ERRLOG1("Couldn't set thread name to %s. Continuing anyway.", UPDATER_THREAD_NAME);
+	}
+#endif
 
 	ERRLOG2("Weather grid phase time: %lu (%ld seconds from now).", _wxGridPhaseTime, (_wxGridPhaseTime - curTime));
 

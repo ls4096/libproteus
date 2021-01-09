@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2021 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -31,6 +31,7 @@
 #include "ErrLog.h"
 
 #define ERRLOG_ID "proteus_Wave"
+#define UPDATER_THREAD_NAME "proteus_Wave"
 
 
 // NOTE: This module currently makes some fixed assumptions about the grid dimensions
@@ -115,6 +116,13 @@ int proteus_Wave_init(const char* f1File, const char* f2File)
 	{
 		return -2;
 	}
+
+#if defined(_GNU_SOURCE) && defined(__GLIBC__)
+	if (0 != pthread_setname_np(_waveUpdaterThread, UPDATER_THREAD_NAME))
+	{
+		ERRLOG1("Couldn't set thread name to %s. Continuing anyway.", UPDATER_THREAD_NAME);
+	}
+#endif
 
 	return ((_waveGrid0 != 0 && _waveGrid1 != 0) ? 0 : -1);
 }
