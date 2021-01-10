@@ -86,7 +86,11 @@ PROTEUS_API int proteus_GeoInfo_init(const char* dataDir)
 		sd->grid = 0;
 		sd->lastUsed = 0;
 
-		pthread_mutex_init(&sd->lock, 0);
+		if (0 != pthread_mutex_init(&sd->lock, 0))
+		{
+			ERRLOG("Failed to init mutex!");
+			return -4;
+		}
 	}
 
 	if (0 != pthread_create(&_gridPrunerThread, 0, &gridPrunerMain, 0))
@@ -114,7 +118,11 @@ PROTEUS_API bool proteus_GeoInfo_isWater(const proteus_GeoPos* pos)
 
 	SquareDegree* sd = _grids + index;
 	pthread_mutex_t* l = &sd->lock;
-	pthread_mutex_lock(l);
+	if (0 != pthread_mutex_lock(l))
+	{
+		ERRLOG("isWater: Failed to lock mutex!");
+		return true;
+	}
 
 	if (!sd->loaded)
 	{
@@ -124,7 +132,10 @@ PROTEUS_API bool proteus_GeoInfo_isWater(const proteus_GeoPos* pos)
 	if (sd->grid == 0)
 	{
 		// No grid means there was no data file for this square degree.
-		pthread_mutex_unlock(l);
+		if (0 != pthread_mutex_unlock(l))
+		{
+			ERRLOG("isWater: Failed to unlock mutex!");
+		}
 
 		// Assume water if latitude >= -79.
 		// Assume land or ice shelf (Antarctica) if latitude < -79.
@@ -135,7 +146,11 @@ PROTEUS_API bool proteus_GeoInfo_isWater(const proteus_GeoPos* pos)
 
 	sd->lastUsed = time(0);
 
-	pthread_mutex_unlock(l);
+	if (0 != pthread_mutex_unlock(l))
+	{
+		ERRLOG("isWater: Failed to unlock mutex!");
+	}
+
 	return isWater;
 }
 
@@ -265,7 +280,11 @@ static void* gridPrunerMain(void* arg)
 		{
 			SquareDegree* sd = _grids + i;
 			pthread_mutex_t* l = &sd->lock;
-			pthread_mutex_lock(l);
+			if (0 != pthread_mutex_lock(l))
+			{
+				ERRLOG("gridPrunerMain: Failed to lock mutex!");
+				break;
+			}
 
 			if (sd->loaded)
 			{
@@ -288,7 +307,11 @@ static void* gridPrunerMain(void* arg)
 				}
 			}
 
-			pthread_mutex_unlock(l);
+			if (0 != pthread_mutex_unlock(l))
+			{
+				ERRLOG("gridPrunerMain: Failed to unlock mutex!");
+				break;
+			}
 		}
 
 		ERRLOG3("Grid pruner done. loaded=%u, gridded=%u, retained=%u", loadedCount, griddedCount, retainedCount);

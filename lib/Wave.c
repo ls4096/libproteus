@@ -54,7 +54,7 @@ static const char* _f2File = 0;
 
 static WaveGridPoint* _waveGrid0 = 0;
 static WaveGridPoint* _waveGrid1 = 0;
-static pthread_mutex_t _waveGridLock;
+static pthread_rwlock_t _waveGridLock;
 static time_t _waveGridPhaseTime = 0;
 
 static pthread_t _waveUpdaterThread;
@@ -79,7 +79,11 @@ int proteus_Wave_init(const char* f1File, const char* f2File)
 	_f1File = strdup(f1File);
 	_f2File = strdup(f2File);
 
-	pthread_mutex_init(&_waveGridLock, 0);
+	if (0 != pthread_rwlock_init(&_waveGridLock, 0))
+	{
+		ERRLOG("Failed to init rwlock!");
+		return -4;
+	}
 
 	time_t curTime = time(0);
 	struct tm tres;
@@ -144,7 +148,11 @@ bool proteus_Wave_get(const proteus_GeoPos* pos, proteus_WaveData* wd)
 	}
 
 	bool ret = false;
-	pthread_mutex_lock(&_waveGridLock);
+	if (0 != pthread_rwlock_rdlock(&_waveGridLock))
+	{
+		ERRLOG("get: Failed to lock for read!");
+		return false;
+	}
 
 	const WaveGridPoint* waveGridPtA0 = _waveGrid0 + getXYIndex(ilon, ilat);
 	const WaveGridPoint* waveGridPtB0 = _waveGrid0 + getXYIndex(ilon + 1, ilat);
@@ -355,7 +363,11 @@ bool proteus_Wave_get(const proteus_GeoPos* pos, proteus_WaveData* wd)
 	ret = true;
 
 done:
-	pthread_mutex_unlock(&_waveGridLock);
+	if (0 != pthread_rwlock_unlock(&_waveGridLock))
+	{
+		ERRLOG("get: Failed to unlock rwlock!");
+	}
+
 	return ret;
 }
 
@@ -416,7 +428,11 @@ static void updateWaveGrid(int grid, const char* waveDataPath)
 	}
 	else
 	{
-		pthread_mutex_lock(&_waveGridLock);
+		if (0 != pthread_rwlock_wrlock(&_waveGridLock))
+		{
+			ERRLOG("updateWaveGrid: Failed to lock for write!");
+			goto fail;
+		}
 
 		// Update, so free grid 0 data, grid 0 gets grid 1 data, and grid 1 gets latest data.
 		free(_waveGrid0);
@@ -425,7 +441,10 @@ static void updateWaveGrid(int grid, const char* waveDataPath)
 
 		_waveGridPhaseTime = time(0) + WAVE_DATA_PHASE_IN_SECONDS;
 
-		pthread_mutex_unlock(&_waveGridLock);
+		if (0 != pthread_rwlock_unlock(&_waveGridLock))
+		{
+			ERRLOG("updateWaveGrid: Failed to unlock rwlock!");
+		}
 
 		ERRLOG2("Updated wave grids (latest from %s). Grid phase time: %lu", waveDataPath, _waveGridPhaseTime);
 	}

@@ -59,7 +59,7 @@ static const char* _f2File = 0;
 
 static OceanGridPoint* _oceanGrid0 = 0;
 static OceanGridPoint* _oceanGrid1 = 0;
-static pthread_mutex_t _oceanGridLock;
+static pthread_rwlock_t _oceanGridLock;
 static time_t _oceanGridPhaseTime = 0;
 
 static pthread_t _oceanUpdaterThread;
@@ -86,7 +86,11 @@ int proteus_Ocean_init(const char* f1File, const char* f2File)
 	_f1File = strdup(f1File);
 	_f2File = strdup(f2File);
 
-	pthread_mutex_init(&_oceanGridLock, 0);
+	if (0 != pthread_rwlock_init(&_oceanGridLock, 0))
+	{
+		ERRLOG("Failed to init rwlock!");
+		return -4;
+	}
 
 	time_t curTime = time(0);
 	struct tm tres;
@@ -151,7 +155,11 @@ bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData* od)
 	}
 
 	bool ret = false;
-	pthread_mutex_lock(&_oceanGridLock);
+	if (0 != pthread_rwlock_rdlock(&_oceanGridLock))
+	{
+		ERRLOG("get: Failed to lock for read!");
+		return false;
+	}
 
 	const OceanGridPoint* oceanGridPtA0 = _oceanGrid0 + getXYIndex(ilon, ilat);
 	const OceanGridPoint* oceanGridPtB0 = _oceanGrid0 + getXYIndex(ilon + 1, ilat);
@@ -463,7 +471,11 @@ bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData* od)
 	ret = true;
 
 done:
-	pthread_mutex_unlock(&_oceanGridLock);
+	if (0 != pthread_rwlock_unlock(&_oceanGridLock))
+	{
+		ERRLOG("get: Failed to unlock rwlock!");
+	}
+
 	return ret;
 }
 
@@ -524,7 +536,11 @@ static void updateOceanGrid(int grid, const char* oceanDataPath)
 	}
 	else
 	{
-		pthread_mutex_lock(&_oceanGridLock);
+		if (0 != pthread_rwlock_wrlock(&_oceanGridLock))
+		{
+			ERRLOG("updateOceanGrid: Failed to lock for write!");
+			goto fail;
+		}
 
 		// Update, so free grid 0 data, grid 0 gets grid 1 data, and grid 1 gets latest data.
 		free(_oceanGrid0);
@@ -533,7 +549,10 @@ static void updateOceanGrid(int grid, const char* oceanDataPath)
 
 		_oceanGridPhaseTime = time(0) + OCEAN_DATA_PHASE_IN_SECONDS;
 
-		pthread_mutex_unlock(&_oceanGridLock);
+		if (0 != pthread_rwlock_unlock(&_oceanGridLock))
+		{
+			ERRLOG("updateOceanGrid: Failed to unlock rwlock!");
+		}
 
 		ERRLOG2("Updated ocean grids (latest from %s). Grid phase time: %lu", oceanDataPath, _oceanGridPhaseTime);
 	}

@@ -14,6 +14,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <errno.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -101,7 +102,7 @@ static char* _f2Dir = 0;
 
 static WxGridPoint* _wxGrid0 = 0;
 static WxGridPoint* _wxGrid1 = 0;
-static pthread_mutex_t _wxGridLock;
+static pthread_rwlock_t _wxGridLock;
 static time_t _wxGridPhaseTime = 0;
 
 static WxGridConfig* _gridConf = 0;
@@ -170,10 +171,23 @@ PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, cons
 	_f1Dir = strdup(f1Dir);
 	_f2Dir = strdup(f2Dir);
 
-	pthread_mutex_init(&_wxGridLock, 0);
+	if (0 != pthread_rwlock_init(&_wxGridLock, 0))
+	{
+		ERRLOG("Failed to init rwlock!");
+		return -4;
+	}
 
-	pthread_mutex_init(&_wxUpdaterThreadRunLock, 0);
-	pthread_cond_init(&_wxUpdaterThreadCond, 0);
+	if (0 != pthread_mutex_init(&_wxUpdaterThreadRunLock, 0))
+	{
+		ERRLOG("Failed to init mutex!");
+		return -4;
+	}
+
+	if (0 != pthread_cond_init(&_wxUpdaterThreadCond, 0))
+	{
+		ERRLOG("Failed to init cond!");
+		return -4;
+	}
 
 	_gridConf = &GRID_CONFIG[sourceDataGrid];
 
@@ -253,7 +267,11 @@ PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 		ilon = 0;
 	}
 
-	pthread_mutex_lock(&_wxGridLock);
+	if (0 != pthread_rwlock_rdlock(&_wxGridLock))
+	{
+		ERRLOG("get: Failed to lock for read!");
+		return;
+	}
 
 	const WxGridPoint* wxGridPtA0 = _wxGrid0 + getXYIndex(ilon, ilat);
 	const WxGridPoint* wxGridPtB0 = _wxGrid0 + getXYIndex(ilon + 1, ilat);
@@ -466,7 +484,10 @@ PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 
 
 done:
-	pthread_mutex_unlock(&_wxGridLock);
+	if (0 != pthread_rwlock_unlock(&_wxGridLock))
+	{
+		ERRLOG("get: Failed to unlock rwlock!");
+	}
 }
 
 
@@ -759,7 +780,11 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 	}
 	else
 	{
-		pthread_mutex_lock(&_wxGridLock);
+		if (0 != pthread_rwlock_wrlock(&_wxGridLock))
+		{
+			ERRLOG("updateWxGrid: Failed to lock for write!");
+			goto fail;
+		}
 
 		// Update, so free grid 0 data, grid 0 gets grid 1 data, and grid 1 gets latest data.
 		free(_wxGrid0);
@@ -768,7 +793,10 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 
 		_wxGridPhaseTime = time(0) + WX_DATA_PHASE_IN_SECONDS;
 
-		pthread_mutex_unlock(&_wxGridLock);
+		if (0 != pthread_rwlock_unlock(&_wxGridLock))
+		{
+			ERRLOG("updateWxGrid: Failed to unlock rwlock!");
+		}
 
 		ERRLOG2("Updated weather grids (latest from %s). Grid phase time: %lu", wxDataDirPath, _wxGridPhaseTime);
 	}
@@ -940,7 +968,7 @@ static void resetWx(bool stopThread)
 		pthread_join(_wxUpdaterThread, 0);
 	}
 
-	pthread_mutex_destroy(&_wxGridLock);
+	pthread_rwlock_destroy(&_wxGridLock);
 
 	pthread_mutex_destroy(&_wxUpdaterThreadRunLock);
 	pthread_cond_destroy(&_wxUpdaterThreadCond);
@@ -1007,24 +1035,42 @@ static void* wxUpdaterMain(void* arg)
 
 
 		const struct timespec waitUntilTime = { .tv_sec = time(0) + 60, .tv_nsec = 0 };
-		pthread_mutex_lock(&_wxUpdaterThreadRunLock);
+		if (0 != pthread_mutex_lock(&_wxUpdaterThreadRunLock))
+		{
+			ERRLOG("wxUpdaterMain: pthread_mutex_lock failed!");
+			sleep(1);
+			continue;
+		}
+
+		bool stopThread = false;
 
 		if (_wxUpdaterThreadStop)
 		{
-			pthread_mutex_unlock(&_wxUpdaterThreadRunLock);
-			return 0;
+			goto iter_end;
 		}
 
 		// TODO: Wait until we need to update the grids. Polling with a short time interval here is lazy and causes pointless frequent wakeups.
-		pthread_cond_timedwait(&_wxUpdaterThreadCond, &_wxUpdaterThreadRunLock, &waitUntilTime);
+		int rc = pthread_cond_timedwait(&_wxUpdaterThreadCond, &_wxUpdaterThreadRunLock, &waitUntilTime);
 
-		if (_wxUpdaterThreadStop)
+		if (rc != 0 && rc != ETIMEDOUT)
 		{
-			pthread_mutex_unlock(&_wxUpdaterThreadRunLock);
+			ERRLOG1("wxUpdaterMain: pthread_cond_timedwait failed with rc=%d", rc);
 			return 0;
 		}
 
-		pthread_mutex_unlock(&_wxUpdaterThreadRunLock);
+iter_end:
+		stopThread = _wxUpdaterThreadStop;
+
+		if (0 != pthread_mutex_unlock(&_wxUpdaterThreadRunLock))
+		{
+			ERRLOG("wxUpdaterMain: pthread_mutex_unlock failed!");
+		}
+
+		if (stopThread)
+		{
+			ERRLOG("wxUpdaterMain: Thread was commanded to stop.");
+			break;
+		}
 	}
 
 	return 0;
