@@ -259,6 +259,7 @@ PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 		return;
 	}
 
+	// Integral coordinates on the weather grids (corresponding to the "A" points below)
 	int ilon = ((int) floor(pos->lon * _gridConf->scale)) + _gridConf->offsetX;
 	int ilat = ((int) floor(pos->lat * _gridConf->scale)) + _gridConf->offsetY;
 
@@ -273,11 +274,31 @@ PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 		return;
 	}
 
+	/**
+	 * From a weather grid, four grid points (A, B, C, D) are chosen for interpolation:
+	 *
+	 * ilat+1 -- C --------- D
+	 *           |           |   ^
+	 *           |           |   |
+	 *           |           |   N
+	 *           |           |     E --->
+	 *   ilat -- A-----------B
+	 *
+	 *           |           |
+	 *           ilon        ilon+1
+	 *
+	 * This is performed on both separate grids (representing separate forecast hours)
+	 * to arrive at eight points, which are then used for the trilinear interpolation
+	 * to compute the final weather data for a given point at the present time.
+	 */
+
+	// Grid points {A,B,C,D}0 from weather grid 0
 	const WxGridPoint* wxGridPtA0 = _wxGrid0 + getXYIndex(ilon, ilat);
 	const WxGridPoint* wxGridPtB0 = _wxGrid0 + getXYIndex(ilon + 1, ilat);
 	const WxGridPoint* wxGridPtC0 = _wxGrid0 + getXYIndex(ilon, ilat + 1);
 	const WxGridPoint* wxGridPtD0 = _wxGrid0 + getXYIndex(ilon + 1, ilat + 1);
 
+	// Grid points {A,B,C,D}1 from weather grid 1
 	const WxGridPoint* wxGridPtA1 = _wxGrid1 + getXYIndex(ilon, ilat);
 	const WxGridPoint* wxGridPtB1 = _wxGrid1 + getXYIndex(ilon + 1, ilat);
 	const WxGridPoint* wxGridPtC1 = _wxGrid1 + getXYIndex(ilon, ilat + 1);
@@ -285,7 +306,7 @@ PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 
 	if (ilon == _gridConf->gridX - 1)
 	{
-		// Just west of the 180 degree line of longitude
+		// Just west of the 180 degree line of longitude, so B and D points wrap around to ilon=0.
 
 		wxGridPtA0 = _wxGrid0 + getXYIndex(ilon, ilat);
 		wxGridPtB0 = _wxGrid0 + getXYIndex(0, ilat);
@@ -298,9 +319,9 @@ PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 		wxGridPtD1 = _wxGrid1 + getXYIndex(0, ilat + 1);
 	}
 
-	if (ilat == _gridConf->offsetY)
+	if (ilat == _gridConf->gridY - 1)
 	{
-		// At the north pole
+		// At the north pole, so C and D points are forced to be the same as A and B, respectively.
 
 		wxGridPtC0 = wxGridPtA0;
 		wxGridPtD0 = wxGridPtB0;

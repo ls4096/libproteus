@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2021 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -89,6 +89,36 @@ static int test_grid_1p00()
 	{
 		return 1;
 	}
+
+
+	// Ensure no discontinuity across 1 degree north latitude...
+	// There was a bug here where the band of latitude between the equator and 1 degree north was not
+	// interpolating with all the expected points properly. If fixed, the checks below ought to pass.
+
+	static const float EXPECTED_TEMP = 296.761f - 273.15f;
+	static const float EXPECTED_DEWPOINT = 294.322f - 273.15f;
+	static const float EXPECTED_WIND_GUST = 7.33380556f;
+
+	p.lat = 1.0;
+	p.lon = -80.0;
+	proteus_Weather_get(&p, &wx, false);
+	EQUALS_FLT(EXPECTED_TEMP, wx.temp);
+	EQUALS_FLT(EXPECTED_DEWPOINT, wx.dewpoint);
+	EQUALS_FLT(EXPECTED_WIND_GUST, wx.windGust);
+
+	p.lat = 0.999999;
+	p.lon = -80.0;
+	proteus_Weather_get(&p, &wx, false);
+	EQUALS_FLT(EXPECTED_TEMP, wx.temp);
+	EQUALS_FLT(EXPECTED_DEWPOINT, wx.dewpoint);
+	EQUALS_FLT(EXPECTED_WIND_GUST, wx.windGust);
+
+	p.lat = 1.000001;
+	p.lon = -80.0;
+	proteus_Weather_get(&p, &wx, false);
+	EQUALS_FLT(EXPECTED_TEMP, wx.temp);
+	EQUALS_FLT(EXPECTED_DEWPOINT, wx.dewpoint);
+	EQUALS_FLT(EXPECTED_WIND_GUST, wx.windGust);
 
 
 	return 0;
