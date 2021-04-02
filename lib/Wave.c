@@ -69,7 +69,7 @@ static void insertWaveGridPoint(WaveGridPoint* waveGrid, float lon, float lat, f
 static int getXYIndex(int x, int y);
 
 
-int proteus_Wave_init(const char* f1File, const char* f2File)
+PROTEUS_API int proteus_Wave_init(const char* f1File, const char* f2File)
 {
 	if (!f1File || !f2File)
 	{
@@ -131,7 +131,7 @@ int proteus_Wave_init(const char* f1File, const char* f2File)
 	return ((_waveGrid0 != 0 && _waveGrid1 != 0) ? 0 : -1);
 }
 
-bool proteus_Wave_get(const proteus_GeoPos* pos, proteus_WaveData* wd)
+PROTEUS_API bool proteus_Wave_get(const proteus_GeoPos* pos, proteus_WaveData* wd)
 {
 	// NOTE: Constants below will require modification if WAVE_GRID_X or WAVE_GRID_Y values change.
 	int ilon = ((int) floor(pos->lon)) + 180;

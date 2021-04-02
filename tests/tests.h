@@ -17,6 +17,7 @@
 #ifndef _tests_h_
 #define _tests_h_
 
+int test_Celestial_run();
 int test_Compass_run();
 int test_GeoInfo_run();
 int test_GeoPos_run();

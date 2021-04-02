@@ -76,7 +76,7 @@ static int getXYIndex(int x, int y);
 static void computeOceanDataIce(proteus_OceanData* od);
 
 
-int proteus_Ocean_init(const char* f1File, const char* f2File)
+PROTEUS_API int proteus_Ocean_init(const char* f1File, const char* f2File)
 {
 	if (!f1File || !f2File)
 	{
@@ -138,7 +138,7 @@ int proteus_Ocean_init(const char* f1File, const char* f2File)
 	return ((_oceanGrid0 != 0 && _oceanGrid1 != 0) ? 0 : -1);
 }
 
-bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData* od)
+PROTEUS_API bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData* od)
 {
 	// NOTE: Constants below will require modification if OCEAN_GRID_X or OCEAN_GRID_Y values change.
 	int ilon = ((int) floor(pos->lon * 2.5)) + 450;

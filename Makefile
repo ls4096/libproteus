@@ -5,6 +5,7 @@ tests: proteus_tests libproteus
 
 
 LIB_OBJS = \
+	lib/Celestial.o \
 	lib/Compass.o \
 	lib/Decompress.o \
 	lib/ErrLog.o \
@@ -19,6 +20,7 @@ LIB_OBJS = \
 
 TESTS_OBJS = \
 	tests/tests_main.o \
+	tests/test_Celestial.o \
 	tests/test_Compass.o \
 	tests/test_GeoInfo.o \
 	tests/test_GeoPos.o \

@@ -23,6 +23,7 @@
 typedef int (*test_func)(void);
 
 static const char* TEST_NAMES[] = {
+	"Celestial",
 	"Compass",
 	"GeoInfo",
 	"GeoPos",
@@ -34,6 +35,7 @@ static const char* TEST_NAMES[] = {
 };
 
 static const test_func TEST_FUNCS[] = {
+	&test_Celestial_run,
 	&test_Compass_run,
 	&test_GeoInfo_run,
 	&test_GeoPos_run,
