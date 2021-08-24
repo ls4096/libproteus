@@ -76,7 +76,11 @@ PROTEUS_API int proteus_GeoInfo_init(const char* dataDir)
 
 	_dataDir = strdup(dataDir);
 
-	_grids = (SquareDegree*) malloc(NUM_GRIDS * sizeof(SquareDegree));
+	_grids = malloc(NUM_GRIDS * sizeof(SquareDegree));
+	if (!_grids)
+	{
+		return -5;
+	}
 
 	for (int i = 0 ; i < NUM_GRIDS; i++)
 	{
@@ -206,14 +210,26 @@ static void loadSquareDegree(SquareDegree* sd, int ilon, int ilat)
 		long fileDataLen = ftell(f);
 		rewind(f);
 
-		fileData = (char*) malloc(fileDataLen);
+		fileData = malloc(fileDataLen);
+		if (!fileData)
+		{
+			ERRLOG("Alloc failed for fileData!");
+			goto fail;
+		}
+
 		if (fread(fileData, 1, fileDataLen, f) != fileDataLen)
 		{
 			ERRLOG1("Failed to read expected file contents from file: %s", filename);
 			goto fail;
 		}
 
-		newGrid = (uint8_t*) malloc(SQ_DEG_GRID_SIZE);
+		newGrid = malloc(SQ_DEG_GRID_SIZE);
+		if (!newGrid)
+		{
+			ERRLOG("Alloc failed for newGrid!");
+			goto fail;
+		}
+
 		int rc;
 		if (0 != (rc = Decompress_inflate(newGrid, SQ_DEG_GRID_SIZE, fileData, fileDataLen)))
 		{

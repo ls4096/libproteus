@@ -170,7 +170,13 @@ PROTEUS_API double proteus_Compass_magdec(const proteus_GeoPos* pos, time_t t)
 
 static void initMagGrid(const char* magGridDataPath)
 {
-	MagGridPoint* magGrid = (MagGridPoint*) malloc(MAG_GRID_X * MAG_GRID_Y * sizeof(MagGridPoint));
+	MagGridPoint* magGrid = malloc(MAG_GRID_X * MAG_GRID_Y * sizeof(MagGridPoint));
+	if (!magGrid)
+	{
+		ERRLOG("Alloc failed for magGrid!");
+		goto fail;
+	}
+
 	memset(magGrid, 0x00, MAG_GRID_X * MAG_GRID_Y * sizeof(MagGridPoint));
 
 	FILE* fp;

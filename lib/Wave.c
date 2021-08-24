@@ -375,7 +375,12 @@ done:
 
 static void updateWaveGrid(int grid, const char* waveDataPath)
 {
-	WaveGridPoint* waveGrid = (WaveGridPoint*) malloc(WAVE_GRID_X * WAVE_GRID_Y * sizeof(WaveGridPoint));
+	WaveGridPoint* waveGrid = malloc(WAVE_GRID_X * WAVE_GRID_Y * sizeof(WaveGridPoint));
+	if (!waveGrid)
+	{
+		ERRLOG("updateWxGrid: Alloc failed for waveGrid!");
+		goto fail;
+	}
 
 	if (grid == -1)
 	{

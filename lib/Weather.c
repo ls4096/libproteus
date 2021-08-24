@@ -516,7 +516,12 @@ done:
 
 static void updateWxGrid(int grid, const char* wxDataDirPath)
 {
-	WxGridPoint* wxGrid = (WxGridPoint*) malloc(_gridConf->gridX * _gridConf->gridY * sizeof(WxGridPoint));
+	WxGridPoint* wxGrid = malloc(_gridConf->gridX * _gridConf->gridY * sizeof(WxGridPoint));
+	if (!wxGrid)
+	{
+		ERRLOG("updateWxGrid: Alloc failed for wxGrid!");
+		goto fail;
+	}
 
 	if (grid == -1)
 	{

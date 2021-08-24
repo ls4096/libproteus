@@ -483,7 +483,12 @@ done:
 
 static void updateOceanGrid(int grid, const char* oceanDataPath)
 {
-	OceanGridPoint* oceanGrid = (OceanGridPoint*) malloc(OCEAN_GRID_X * OCEAN_GRID_Y * sizeof(OceanGridPoint));
+	OceanGridPoint* oceanGrid = malloc(OCEAN_GRID_X * OCEAN_GRID_Y * sizeof(OceanGridPoint));
+	if (!oceanGrid)
+	{
+		ERRLOG("updateWxGrid: Alloc failed for oceanGrid!");
+		goto fail;
+	}
 
 	if (grid == -1)
 	{
