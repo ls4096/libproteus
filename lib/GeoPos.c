@@ -43,8 +43,8 @@ PROTEUS_API void proteus_GeoPos_advance(proteus_GeoPos* p, const proteus_GeoVec*
 
 	p->lon += proteus_ScalarConv_m2dlon(vx, lat);
 
-	// Clip longitudes outside the range of [-180, 180].
-	if (p->lon > 180.0)
+	// Clip longitudes outside the range of [-180, 180).
+	if (p->lon >= 180.0)
 	{
 		p->lon -= 360.0;
 	}
