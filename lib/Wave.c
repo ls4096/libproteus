@@ -58,7 +58,7 @@ static pthread_rwlock_t _waveGridLock;
 static time_t _waveGridPhaseTime = 0;
 
 static pthread_t _waveUpdaterThread;
-static void* waveUpdaterMain(void* arg);
+static void* waveUpdaterMain();
 
 
 static void updateWaveGrid(int grid, const char* waveDataPath);
@@ -519,7 +519,7 @@ static int getXYIndex(int x, int y)
 }
 
 
-static void* waveUpdaterMain(void* arg)
+static void* waveUpdaterMain()
 {
 	bool update = false;
 

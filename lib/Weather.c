@@ -111,7 +111,7 @@ static WxGridConfig* _gridConf = 0;
 static void resetWx(bool stopThread);
 
 static pthread_t _wxUpdaterThread;
-static void* wxUpdaterMain(void* arg);
+static void* wxUpdaterMain();
 
 static bool _wxUpdaterThreadStop = false;
 static pthread_mutex_t _wxUpdaterThreadRunLock;
@@ -1028,7 +1028,7 @@ static void resetWx(bool stopThread)
 	_gridConf = 0;
 }
 
-static void* wxUpdaterMain(void* arg)
+static void* wxUpdaterMain()
 {
 	bool update = false;
 

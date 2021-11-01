@@ -46,14 +46,14 @@ static const test_func TEST_FUNCS[] = {
 	&test_Weather_run
 };
 
-int main(int argc, char** argv)
+int main()
 {
 	int testres;
 	int sum = 0;
 
 	printf("Running tests for libproteus v%s\n", proteus_getVersionString());
 
-	for (int i = 0; i < (sizeof(TEST_NAMES) / sizeof(const char*)); i++)
+	for (size_t i = 0; i < (sizeof(TEST_NAMES) / sizeof(const char*)); i++)
 	{
 		printf("%s...\n", TEST_NAMES[i]);
 

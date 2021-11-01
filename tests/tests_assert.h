@@ -27,12 +27,12 @@
 
 #define PROTEUS_DBL_EPSILON (0.000000001)
 #define EQUALS_DBL(x, y) do { \
-	if (fabs(x - y) > PROTEUS_DBL_EPSILON) { printf("\t%s:%d: %s\n", __FILE__, __LINE__, #x " !~= " #y); return 1; } \
+	if (fabs((double)(x - y)) > PROTEUS_DBL_EPSILON) { printf("\t%s:%d: %s\n", __FILE__, __LINE__, #x " !~= " #y); return 1; } \
 } while (0)
 
-#define PROTEUS_FLT_EPSILON (0.00001)
+#define PROTEUS_FLT_EPSILON (0.00001f)
 #define EQUALS_FLT(x, y) do { \
-	if (fabsf(x - y) > PROTEUS_FLT_EPSILON) { printf("\t%s:%d: %s\n", __FILE__, __LINE__, #x " !~= " #y); return 1; } \
+	if (fabsf((float)(x - y)) > PROTEUS_FLT_EPSILON) { printf("\t%s:%d: %s\n", __FILE__, __LINE__, #x " !~= " #y); return 1; } \
 } while (0)
 
 #define IS_TRUE(x) do { \

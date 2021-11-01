@@ -59,7 +59,7 @@ static void loadSquareDegree(SquareDegree* sd, int ilon, int ilat);
 static bool sdGridIsWater(const proteus_GeoPos* pos, const uint8_t* grid);
 
 static pthread_t _gridPrunerThread;
-static void* gridPrunerMain(void* arg);
+static void* gridPrunerMain();
 
 
 PROTEUS_API int proteus_GeoInfo_init(const char* dataDir)
@@ -207,13 +207,14 @@ static void loadSquareDegree(SquareDegree* sd, int ilon, int ilat)
 		ERRLOG1("Found %s", filename);
 
 		fseek(f, 0L, SEEK_END);
-		long fileDataLen = ftell(f);
+		const long ft = ftell(f);
+		const size_t fileDataLen = (ft < 0L ? 0 : (size_t)ft);
 		rewind(f);
 
 		fileData = malloc(fileDataLen);
 		if (!fileData)
 		{
-			ERRLOG("Alloc failed for fileData!");
+			ERRLOG1("Alloc failed for fileData! fileDataLen=", fileDataLen);
 			goto fail;
 		}
 
@@ -278,7 +279,7 @@ static bool sdGridIsWater(const proteus_GeoPos* pos, const uint8_t* grid)
 }
 
 
-static void* gridPrunerMain(void* arg)
+static void* gridPrunerMain()
 {
 	for (;;)
 	{

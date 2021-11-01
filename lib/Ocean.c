@@ -63,7 +63,7 @@ static pthread_rwlock_t _oceanGridLock;
 static time_t _oceanGridPhaseTime = 0;
 
 static pthread_t _oceanUpdaterThread;
-static void* oceanUpdaterMain(void* arg);
+static void* oceanUpdaterMain();
 
 
 static void updateOceanGrid(int grid, const char* oceanDataPath);
@@ -673,7 +673,7 @@ static void computeOceanDataIce(proteus_OceanData* od)
 }
 
 
-static void* oceanUpdaterMain(void* arg)
+static void* oceanUpdaterMain()
 {
 	bool update = false;
 
