@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2022 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,7 @@
 
 #define PROTEUS_VERSION_MAJOR 0
 #define PROTEUS_VERSION_MINOR 6
-#define PROTEUS_VERSION_PATCH 3
+#define PROTEUS_VERSION_PATCH 4
 
 #define STRX(x) #x
 #define STR(x) STRX(x)

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2021 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2022 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -131,10 +131,7 @@ static void insertWxGridPres(WxGridPoint* wxGrid, float lon, float lat, float pr
 static void insertWxGridCld(WxGridPoint* wxGrid, float lon, float lat, float cld);
 static void insertWxGridVis(WxGridPoint* wxGrid, float lon, float lat, float vis);
 static void insertWxGridPrate(WxGridPoint* wxGrid, float lon, float lat, float prate);
-static void insertWxGridRain(WxGridPoint* wxGrid, float lon, float lat, int rain);
-static void insertWxGridSnow(WxGridPoint* wxGrid, float lon, float lat, int snow);
-static void insertWxGridIcep(WxGridPoint* wxGrid, float lon, float lat, int icep);
-static void insertWxGridFrzr(WxGridPoint* wxGrid, float lon, float lat, int frzr);
+static void insertWxGridCond(WxGridPoint* wxGrid, float lon, float lat, int value, uint8_t wxCond);
 
 static int getLonLatIndexForInsert(float lon, float lat);
 static int getXYIndex(int x, int y);
@@ -277,7 +274,7 @@ PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 	/**
 	 * From a weather grid, four grid points (A, B, C, D) are chosen for interpolation:
 	 *
-	 * ilat+1 -- C --------- D
+	 * ilat+1 -- C-----------D
 	 *           |           |   ^
 	 *           |           |   |
 	 *           |           |   N
@@ -729,7 +726,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 			goto fail;
 		}
 
-		insertWxGridRain(wxGrid, x, y, n);
+		insertWxGridCond(wxGrid, x, y, n, PROTEUS_WX_COND_RAIN);
 	}
 	fclose(fp);
 
@@ -748,7 +745,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 			goto fail;
 		}
 
-		insertWxGridSnow(wxGrid, x, y, n);
+		insertWxGridCond(wxGrid, x, y, n, PROTEUS_WX_COND_SNOW);
 	}
 	fclose(fp);
 
@@ -767,7 +764,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 			goto fail;
 		}
 
-		insertWxGridIcep(wxGrid, x, y, n);
+		insertWxGridCond(wxGrid, x, y, n, PROTEUS_WX_COND_ICEP);
 	}
 	fclose(fp);
 
@@ -786,7 +783,7 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 			goto fail;
 		}
 
-		insertWxGridFrzr(wxGrid, x, y, n);
+		insertWxGridCond(wxGrid, x, y, n, PROTEUS_WX_COND_FRZR);
 	}
 	fclose(fp);
 
@@ -931,35 +928,15 @@ static void insertWxGridPrate(WxGridPoint* wxGrid, float lon, float lat, float p
 	wxGrid[getLonLatIndexForInsert(lon, lat)].prate = prate;
 }
 
-static void insertWxGridRain(WxGridPoint* wxGrid, float lon, float lat, int rain)
+static void insertWxGridCond(WxGridPoint* wxGrid, float lon, float lat, int value, uint8_t wxCond)
 {
-	if (rain == 1)
+	if (value)
 	{
-		wxGrid[getLonLatIndexForInsert(lon, lat)].cond |= PROTEUS_WX_COND_RAIN;
+		wxGrid[getLonLatIndexForInsert(lon, lat)].cond |= wxCond;
 	}
-}
-
-static void insertWxGridSnow(WxGridPoint* wxGrid, float lon, float lat, int snow)
-{
-	if (snow == 1)
+	else
 	{
-		wxGrid[getLonLatIndexForInsert(lon, lat)].cond |= PROTEUS_WX_COND_SNOW;
-	}
-}
-
-static void insertWxGridIcep(WxGridPoint* wxGrid, float lon, float lat, int icep)
-{
-	if (icep == 1)
-	{
-		wxGrid[getLonLatIndexForInsert(lon, lat)].cond |= PROTEUS_WX_COND_ICEP;
-	}
-}
-
-static void insertWxGridFrzr(WxGridPoint* wxGrid, float lon, float lat, int frzr)
-{
-	if (frzr == 1)
-	{
-		wxGrid[getLonLatIndexForInsert(lon, lat)].cond |= PROTEUS_WX_COND_FRZR;
+		wxGrid[getLonLatIndexForInsert(lon, lat)].cond &= ~wxCond;
 	}
 }
 
