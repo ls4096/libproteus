@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2022 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -20,10 +20,10 @@
 #include <math.h>
 
 
-#define EPSILON (0.00000001)
-#define M_IN_NAUTICAL_MILE (1852.0)
+#define PROTEUS_EPSILON (0.00000001)
 
-#define DEG_IN_RAD (180.0 / M_PI)
+#define PROTEUS_M_IN_NAUTICAL_MILE (1852.0)
+#define PROTEUS_DEG_IN_RAD (180.0 / M_PI)
 
 
 #endif // _Constants_h_

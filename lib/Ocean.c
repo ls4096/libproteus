@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2021 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2022 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -26,7 +26,7 @@
 #include "proteus_internal.h"
 
 #include "proteus/Ocean.h"
-#include "proteus/ScalarConv.h"
+#include "ScalarConv_internal.h"
 #include "Constants.h"
 #include "ErrLog.h"
 
@@ -411,13 +411,13 @@ PROTEUS_API bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData*
 	const double currentU = (currentU_0 * (1.0 - tFrac)) + (currentU_1 * tFrac);
 	const double currentV = (currentV_0 * (1.0 - tFrac)) + (currentV_1 * tFrac);
 
-	if (fabs(currentV) < EPSILON)
+	if (fabs(currentV) < PROTEUS_EPSILON)
 	{
-		if (currentU < -EPSILON)
+		if (currentU < -PROTEUS_EPSILON)
 		{
 			od->current.angle = 270.0;
 		}
-		else if (currentU > EPSILON)
+		else if (currentU > PROTEUS_EPSILON)
 		{
 			od->current.angle = 90.0;
 		}
@@ -428,7 +428,7 @@ PROTEUS_API bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData*
 	}
 	else
 	{
-		od->current.angle = proteus_ScalarConv_rad2deg(atan(currentU / currentV));
+		od->current.angle = ScalarConv_rad2deg(atan(currentU / currentV));
 
 		if (currentV < 0.0)
 		{

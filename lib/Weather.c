@@ -27,7 +27,7 @@
 #include "proteus_internal.h"
 
 #include "proteus/Weather.h"
-#include "proteus/ScalarConv.h"
+#include "ScalarConv_internal.h"
 #include "Constants.h"
 #include "ErrLog.h"
 
@@ -361,13 +361,13 @@ PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 	const double windU = (windU_0 * (1.0 - tFrac)) + (windU_1 * tFrac);
 	const double windV = (windV_0 * (1.0 - tFrac)) + (windV_1 * tFrac);
 
-	if (fabs(windV) < EPSILON)
+	if (fabs(windV) < PROTEUS_EPSILON)
 	{
-		if (windU < -EPSILON)
+		if (windU < -PROTEUS_EPSILON)
 		{
 			wx->wind.angle = 270.0;
 		}
-		else if (windU > EPSILON)
+		else if (windU > PROTEUS_EPSILON)
 		{
 			wx->wind.angle = 90.0;
 		}
@@ -378,7 +378,7 @@ PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 	}
 	else
 	{
-		wx->wind.angle = proteus_ScalarConv_rad2deg(atan(windU / windV));
+		wx->wind.angle = ScalarConv_rad2deg(atan(windU / windV));
 
 		if (windV < 0.0)
 		{

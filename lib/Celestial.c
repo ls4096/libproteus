@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2021-2022 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,7 @@
 #include "proteus_internal.h"
 
 #include "proteus/Celestial.h"
-#include "proteus/ScalarConv.h"
+#include "ScalarConv_internal.h"
 
 
 static const double STAR_EPH_J2000[] = {
@@ -84,22 +84,22 @@ PROTEUS_API int proteus_Celestial_getEquatorialForObject(
 	const double G = fmod(357.528 + 0.9856003 * N, 360.0);
 
 	const double LA = L +
-		1.915 * sin(proteus_ScalarConv_deg2rad(G)) +
-		0.020 * sin(proteus_ScalarConv_deg2rad(2.0 * G));
+		1.915 * sin(ScalarConv_deg2rad(G)) +
+		0.020 * sin(ScalarConv_deg2rad(2.0 * G));
 
-	const double LA_rad = proteus_ScalarConv_deg2rad(LA);
-	const double E_rad = proteus_ScalarConv_deg2rad(computeObliquityForJulianCentury(T));
+	const double LA_rad = ScalarConv_deg2rad(LA);
+	const double E_rad = ScalarConv_deg2rad(computeObliquityForJulianCentury(T));
 
 	const double RA_rad = atan2(cos(E_rad) * sin(LA_rad), cos(LA_rad));
 	const double DEC_rad = asin(sin(E_rad) * sin(LA_rad));
 
-	ec->ra = fmod(proteus_ScalarConv_rad2deg(RA_rad), 360.0) / 15.0;
+	ec->ra = fmod(ScalarConv_rad2deg(RA_rad), 360.0) / 15.0;
 	while (ec->ra < 0.0)
 	{
 		ec->ra += 24.0;
 	}
 
-	ec->dec = proteus_ScalarConv_rad2deg(DEC_rad);
+	ec->dec = ScalarConv_rad2deg(DEC_rad);
 
 	return 0;
 }
@@ -127,11 +127,11 @@ PROTEUS_API int proteus_Celestial_convertEquatorialToHorizontal(
 
 	const double GMST_rad = ERA_rad - (E_PREC_sec * M_PI / 3600.0 / 180.0);
 
-	const double LAT_rad = proteus_ScalarConv_deg2rad(pos->lat);
-	const double LON_rad = proteus_ScalarConv_deg2rad(pos->lon);
+	const double LAT_rad = ScalarConv_deg2rad(pos->lat);
+	const double LON_rad = ScalarConv_deg2rad(pos->lon);
 
-	const double RA_rad = proteus_ScalarConv_deg2rad(ec->ra * 15.0);
-	const double DEC_rad = proteus_ScalarConv_deg2rad(ec->dec);
+	const double RA_rad = ScalarConv_deg2rad(ec->ra * 15.0);
+	const double DEC_rad = ScalarConv_deg2rad(ec->dec);
 
 	const double LMST_rad = GMST_rad + LON_rad;
 	const double LHA_rad = LMST_rad - RA_rad;
@@ -142,13 +142,13 @@ PROTEUS_API int proteus_Celestial_convertEquatorialToHorizontal(
 
 	const double ALT_rad = asin(sin(LAT_rad) * sin(DEC_rad) + cos(LAT_rad) * cos(DEC_rad) * cos(LHA_rad));
 
-	hc->az = fmod(proteus_ScalarConv_rad2deg(AZ_rad) + 180.0, 360.0);
-	hc->alt = proteus_ScalarConv_rad2deg(ALT_rad);
+	hc->az = fmod(ScalarConv_rad2deg(AZ_rad) + 180.0, 360.0);
+	hc->alt = ScalarConv_rad2deg(ALT_rad);
 
 
 	if (atmosEffect)
 	{
-		const double tanArg = proteus_ScalarConv_deg2rad(hc->alt + (10.3 / (hc->alt + 5.11)));
+		const double tanArg = ScalarConv_deg2rad(hc->alt + (10.3 / (hc->alt + 5.11)));
 		const double refrArcMin = 1.02 *
 			(1.0 / tan(tanArg)) *
 			(airPressure / 1010.0) *
@@ -197,9 +197,9 @@ static void computeStarEq(int obj, double jd, proteus_CelestialEquatorialCoord* 
 
 
 	const double RA_2000_rad = RA_2000_hr * 15.0 * M_PI / 180.0;
-	const double DEC_2000_rad = proteus_ScalarConv_deg2rad(DEC_2000_deg);
+	const double DEC_2000_rad = ScalarConv_deg2rad(DEC_2000_deg);
 
-	const double E_rad = proteus_ScalarConv_deg2rad(computeObliquityForJulianCentury(T));
+	const double E_rad = ScalarConv_deg2rad(computeObliquityForJulianCentury(T));
 	const double P_deg = ((5028.796195 * T) + (1.1054348 * T * T)) / 3600.0;
 
 	const double RA_DELTA_hr = (P_deg / 15.0) * (cos(E_rad) + sin(E_rad) * sin(RA_2000_rad) * tan(DEC_2000_rad));
