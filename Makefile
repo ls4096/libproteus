@@ -32,17 +32,17 @@ TESTS_OBJS = \
 
 
 lib/%.o: lib/%.c
-	gcc -fvisibility=hidden -fPIC -c -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE -o $@ $<
+	$(CC) -fvisibility=hidden -fPIC -c -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE -o $@ $<
 
 libproteus.so: $(LIB_OBJS)
-	gcc -fvisibility=hidden -shared -fPIC -O2 -o libproteus.so lib/*.o -lm -lz -lpthread
+	$(CC) -fvisibility=hidden -shared -fPIC -O2 -o libproteus.so lib/*.o -lm -lz -lpthread
 
 
 tests/%.o: tests/%.c
-	gcc -fPIC -c -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE -o $@ $<
+	$(CC) -fPIC -c -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE -o $@ $<
 
 proteus_tests: $(TESTS_OBJS) libproteus.so
-	gcc -O2 -o proteus_tests tests/*.o -L. -lproteus
+	$(CC) -O2 -o proteus_tests tests/*.o -L. -lproteus
 
 
 clean:

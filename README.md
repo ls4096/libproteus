@@ -4,6 +4,12 @@ A global weather, geographic information, and navigation simulator library, used
 
 ## Dependencies
 
+### Build system
+
+C compiler (such as gcc, clang, etc.) and Make.
+
+### Libraries
+
 | Name | Description | Version |
 | ------------- | ------------- | ------------- |
 | zlib library (with headers) | Lossless data-compression library | -  |
