@@ -37,7 +37,7 @@ SOLIB_DEPS = \
 
 
 lib/%.o: lib/%.c
-	$(CC) -fvisibility=hidden -fPIC -c -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE -o $@ $<
+	$(CC) -fvisibility=hidden -fPIC -c -std=c99 -pedantic -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE -o $@ $<
 
 libproteus.so: $(LIB_OBJS)
 	$(CC) -fvisibility=hidden -shared -fPIC -O2 -o libproteus.so lib/*.o $(SOLIB_DEPS)
