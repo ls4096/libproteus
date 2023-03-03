@@ -17,6 +17,7 @@
 #ifndef _proteus_Weather_h_
 #define _proteus_Weather_h_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <proteus/proteus.h>

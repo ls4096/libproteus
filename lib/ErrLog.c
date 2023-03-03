@@ -34,7 +34,7 @@ PROTEUS_API void proteus_Logging_setOutputFd(int logFd)
 
 #define FMT_BUF_SIZE (4096)
 
-void ErrLog_log(const char* id, const char* msg, ...)
+void proteus_internal_ErrLog_log(const char* id, const char* msg, ...)
 {
 	if (_logFd < 0)
 	{

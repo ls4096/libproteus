@@ -1,3 +1,5 @@
 libproteus.so
+libproteus.a
 proteus_tests
+proteus_tests_static
 *.o

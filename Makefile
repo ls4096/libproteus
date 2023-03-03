@@ -1,7 +1,7 @@
 all: libproteus tests
 
-libproteus: libproteus.so
-tests: proteus_tests libproteus
+libproteus: libproteus.so libproteus.a
+tests: proteus_tests proteus_tests_static libproteus
 
 
 LIB_OBJS = \
@@ -30,12 +30,20 @@ TESTS_OBJS = \
 	tests/test_Wave.o \
 	tests/test_Weather.o
 
+SOLIB_DEPS = \
+	-lm \
+	-lz \
+	-lpthread
+
 
 lib/%.o: lib/%.c
 	$(CC) -fvisibility=hidden -fPIC -c -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE -o $@ $<
 
 libproteus.so: $(LIB_OBJS)
-	$(CC) -fvisibility=hidden -shared -fPIC -O2 -o libproteus.so lib/*.o -lm -lz -lpthread
+	$(CC) -fvisibility=hidden -shared -fPIC -O2 -o libproteus.so lib/*.o $(SOLIB_DEPS)
+
+libproteus.a: $(LIB_OBJS)
+	$(AR) rcs libproteus.a lib/*.o
 
 
 tests/%.o: tests/%.c
@@ -44,6 +52,9 @@ tests/%.o: tests/%.c
 proteus_tests: $(TESTS_OBJS) libproteus.so
 	$(CC) -O2 -o proteus_tests tests/*.o -L. -lproteus
 
+proteus_tests_static: $(TESTS_OBJS) libproteus.a
+	$(CC) -O2 -o proteus_tests_static tests/*.o libproteus.a $(SOLIB_DEPS)
+
 
 clean:
-	rm -rf lib/*.o tests/*.o libproteus.so proteus_tests
+	rm -rf lib/*.o tests/*.o libproteus.so libproteus.a proteus_tests proteus_tests_static
