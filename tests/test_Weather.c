@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2021 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2024 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -22,6 +22,9 @@
 static int test_grid_1p00();
 static int test_grid_0p50();
 static int test_grid_0p25();
+
+static int test_out_of_bounds_geo();
+static bool validLonLat(double lon, double lat);
 
 int test_Weather_run()
 {
@@ -65,21 +68,21 @@ static int test_grid_1p00()
 
 	p.lat = 44.0;
 	p.lon = -63.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(293.161f - 273.15f, wx.temp);
 	EQUALS_FLT(290.822f - 273.15f, wx.dewpoint);
 	EQUALS_FLT(12.166f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = -180.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(246.061f - 273.15f, wx.temp);
 	EQUALS_FLT(243.322f - 273.15f, wx.dewpoint);
 	EQUALS_FLT(18.066f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = 180.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(246.061f - 273.15f, wx.temp);
 	EQUALS_FLT(243.322f - 273.15f, wx.dewpoint);
 	EQUALS_FLT(18.066f, wx.windGust);
@@ -101,24 +104,30 @@ static int test_grid_1p00()
 
 	p.lat = 1.0;
 	p.lon = -80.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(EXPECTED_TEMP, wx.temp);
 	EQUALS_FLT(EXPECTED_DEWPOINT, wx.dewpoint);
 	EQUALS_FLT(EXPECTED_WIND_GUST, wx.windGust);
 
 	p.lat = 0.999999;
 	p.lon = -80.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(EXPECTED_TEMP, wx.temp);
 	EQUALS_FLT(EXPECTED_DEWPOINT, wx.dewpoint);
 	EQUALS_FLT(EXPECTED_WIND_GUST, wx.windGust);
 
 	p.lat = 1.000001;
 	p.lon = -80.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(EXPECTED_TEMP, wx.temp);
 	EQUALS_FLT(EXPECTED_DEWPOINT, wx.dewpoint);
 	EQUALS_FLT(EXPECTED_WIND_GUST, wx.windGust);
+
+
+	if (test_out_of_bounds_geo() != 0)
+	{
+		return 1;
+	}
 
 
 	return 0;
@@ -132,50 +141,50 @@ static int test_spatial_interpolation_1p00()
 	// A
 	p.lat = -30.0;
 	p.lon = -20.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(289.061f - 273.15f, wx.temp);
 
 	// B
 	p.lat = -30.0;
 	p.lon = -19.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(289.261f - 273.15f, wx.temp);
 
 	// C
 	p.lat = -31.0;
 	p.lon = -20.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(288.461f - 273.15f, wx.temp);
 
 	// D
 	p.lat = -31.0;
 	p.lon = -19.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(288.761f - 273.15f, wx.temp);
 
 
 	// 0.9A + 0.1B
 	p.lat = -30.0;
 	p.lon = -19.9;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT((0.9 * 289.061f + 0.1 * 289.261f) - 273.15f, wx.temp);
 
 	// 0.9A + 0.1C
 	p.lat = -30.1;
 	p.lon = -20.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT((0.9 * 289.061f + 0.1 * 288.461f) - 273.15f, wx.temp);
 
 	// 0.9C + 0.1D
 	p.lat = -31.0;
 	p.lon = -19.9;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT((0.9 * 288.461f + 0.1 * 288.761f) - 273.15f, wx.temp);
 
 	// 0.9 * (0.9A + 0.1B) + 0.1 * (0.9C + 0.1D)
 	p.lat = -30.1;
 	p.lon = -19.9;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(((0.9 * 289.061f + 0.1 * 289.261f) * 0.9 + (0.9 * 288.461f + 0.1 * 288.761f) * 0.1) - 273.15f, wx.temp);
 
 
@@ -201,27 +210,32 @@ static int test_grid_0p50()
 
 	p.lat = 44.0;
 	p.lon = -63.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(294.2f - 273.15f, wx.temp);
 	EQUALS_FLT(293.778f - 273.15f, wx.dewpoint);
 	EQUALS_FLT(11.3767f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = -180.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(245.3f - 273.15f, wx.temp);
 	EQUALS_FLT(241.278f - 273.15f, wx.dewpoint);
 	EQUALS_FLT(21.1767f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = 180.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(245.3f - 273.15f, wx.temp);
 	EQUALS_FLT(241.278f - 273.15f, wx.dewpoint);
 	EQUALS_FLT(21.1767f, wx.windGust);
 
 
 	if (test_spatial_interpolation_0p50() != 0)
+	{
+		return 1;
+	}
+
+	if (test_out_of_bounds_geo() != 0)
 	{
 		return 1;
 	}
@@ -238,50 +252,50 @@ static int test_spatial_interpolation_0p50()
 	// A
 	p.lat = -30.0;
 	p.lon = -20.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(289.8f - 273.15f, wx.temp);
 
 	// B
 	p.lat = -30.0;
 	p.lon = -19.5;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(289.9f - 273.15f, wx.temp);
 
 	// C
 	p.lat = -30.5;
 	p.lon = -20.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(289.3f - 273.15f, wx.temp);
 
 	// D
 	p.lat = -30.5;
 	p.lon = -19.5;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(289.5f - 273.15f, wx.temp);
 
 
 	// 0.8A + 0.2B
 	p.lat = -30.0;
 	p.lon = -19.9;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT((0.8 * 289.8f + 0.2 * 289.9f) - 273.15f, wx.temp);
 
 	// 0.8A + 0.2C
 	p.lat = -30.1;
 	p.lon = -20.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT((0.8 * 289.8f + 0.2 * 289.3f) - 273.15f, wx.temp);
 
 	// 0.8C + 0.2D
 	p.lat = -30.5;
 	p.lon = -19.9;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT((0.8 * 289.3f + 0.2 * 289.5f) - 273.15f, wx.temp);
 
 	// 0.8 * (0.8A + 0.2B) + 0.2 * (0.8C + 0.2D)
 	p.lat = -30.1;
 	p.lon = -19.9;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(((0.8 * 289.8f + 0.2 * 289.9f) * 0.8 + (0.8 * 289.3f + 0.2 * 289.5f) * 0.2) - 273.15f, wx.temp);
 
 
@@ -307,27 +321,32 @@ static int test_grid_0p25()
 
 	p.lat = 44.0;
 	p.lon = -63.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(294.533f - 273.15f, wx.temp);
 	EQUALS_FLT(290.04f - 273.15f, wx.dewpoint);
 	EQUALS_FLT(4.02764f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = -180.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(244.333f - 273.15f, wx.temp);
 	EQUALS_FLT(240.74f - 273.15f, wx.dewpoint);
 	EQUALS_FLT(17.8276f, wx.windGust);
 
 	p.lat = -75.0;
 	p.lon = 180.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(244.333f - 273.15f, wx.temp);
 	EQUALS_FLT(240.74f - 273.15f, wx.dewpoint);
 	EQUALS_FLT(17.8276f, wx.windGust);
 
 
 	if (test_spatial_interpolation_0p25() != 0)
+	{
+		return 1;
+	}
+
+	if (test_out_of_bounds_geo() != 0)
 	{
 		return 1;
 	}
@@ -344,52 +363,102 @@ static int test_spatial_interpolation_0p25()
 	// A
 	p.lat = 30.0;
 	p.lon = 140.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(301.233f - 273.15f, wx.temp);
 
 	// B
 	p.lat = 30.0;
 	p.lon = 140.25;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(301.333f - 273.15f, wx.temp);
 
 	// C
 	p.lat = 30.25;
 	p.lon = 140.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(301.433f - 273.15f, wx.temp);
 
 	// D
 	p.lat = 30.25;
 	p.lon = 140.25;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(301.233f - 273.15f, wx.temp);
 
 
 	// 0.6A + 0.4B
 	p.lat = 30.0;
 	p.lon = 140.1;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT((0.6 * 301.233f + 0.4 * 301.333f) - 273.15f, wx.temp);
 
 	// 0.6A + 0.4C
 	p.lat = 30.1;
 	p.lon = 140.0;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT((0.6 * 301.233f + 0.4 * 301.433f) - 273.15f, wx.temp);
 
 	// 0.6C + 0.4D
 	p.lat = 30.25;
 	p.lon = 140.1;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT((0.6 * 301.433f + 0.4 * 301.233f) - 273.15f, wx.temp);
 
 	// 0.6 * (0.6A + 0.4B) + 0.4 * (0.6C + 0.4D)
 	p.lat = 30.1;
 	p.lon = 140.1;
-	proteus_Weather_get(&p, &wx, false);
+	IS_TRUE(proteus_Weather_get(&p, &wx, false));
 	EQUALS_FLT(((0.6 * 301.233f + 0.4 * 301.333f) * 0.6 + (0.6 * 301.433f + 0.4 * 301.233f) * 0.4) - 273.15f, wx.temp);
 
 
 	return 0;
+}
+
+
+static int test_out_of_bounds_geo()
+{
+	// Some basic checks using out-of-bounds geographic coordinates
+
+	for (double lon = -360.0; lon <= 360.0; lon += 0.1)
+	{
+		for (double lat = -180.0; lat <= 180.0; lat += 0.1)
+		{
+			const proteus_GeoPos p = { .lat = lat, .lon = lon };
+			proteus_Weather wx;
+
+			if (validLonLat(lon, lat))
+			{
+				IS_TRUE(proteus_Weather_get(&p, &wx, false));
+			}
+			else
+			{
+				IS_FALSE(proteus_Weather_get(&p, &wx, false));
+			}
+		}
+	}
+
+	for (double lon = -36000.0; lon <= 36000.0; lon += 9.9)
+	{
+		for (double lat = -18000.0; lat <= 18000.0; lat += 9.9)
+		{
+			const proteus_GeoPos p = { .lat = lat, .lon = lon };
+			proteus_Weather wx;
+
+			if (validLonLat(lon, lat))
+			{
+				IS_TRUE(proteus_Weather_get(&p, &wx, false));
+			}
+			else
+			{
+				IS_FALSE(proteus_Weather_get(&p, &wx, false));
+			}
+		}
+	}
+
+
+	return 0;
+}
+
+static bool validLonLat(double lon, double lat)
+{
+	return (lon >= -180.0 && lon <= 180.0 && lat >= -90.0 && lat <= 90.0);
 }

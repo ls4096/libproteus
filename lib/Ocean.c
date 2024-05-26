@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2022 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2024 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -35,10 +35,13 @@
 
 
 // NOTE: This module currently makes some fixed assumptions about the grid dimensions
-//       and time between forecast points (for blending).
+//       and time between forecast points (for interpolation).
 
 #define OCEAN_GRID_X (900) // 0.0 (-180) to 359.6 (179.6) - in 0.4 degree increments
-#define OCEAN_GRID_Y (397) // -78.4 to 80.0 - in 0.4 degree increments
+#define OCEAN_GRID_Y (426) // -80.0 to 90.0 - in 0.4 degree increments
+
+#define OCEAN_GRID_OFFSET_X (450)
+#define OCEAN_GRID_OFFSET_Y (200)
 
 // 11 hours, 58 minutes
 #define OCEAN_DATA_PHASE_IN_SECONDS (11 * (60 * 60) + (58 * 60))
@@ -72,6 +75,7 @@ static int readOceanPoint(char* s, float* x, float* y, float* temp, float* u, fl
 static void insertOceanGridPoint(OceanGridPoint* oceanGrid, float lon, float lat, float u, float v, float temp, float salinity);
 
 static int getXYIndex(int x, int y);
+static bool validLonLat(double lon, double lat);
 
 static void computeOceanDataIce(proteus_OceanData* od);
 
@@ -140,11 +144,20 @@ PROTEUS_API int proteus_Ocean_init(const char* f1File, const char* f2File)
 
 PROTEUS_API bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData* od)
 {
-	// NOTE: Constants below will require modification if OCEAN_GRID_X or OCEAN_GRID_Y values change.
-	int ilon = ((int) floor(pos->lon * 2.5)) + 450;
-	int ilat = ((int) floor(pos->lat * 2.5)) + 196;
+	if (!validLonLat(pos->lon, pos->lat))
+	{
+		return false;
+	}
+
+	int ilon = ((int) floor(pos->lon * 2.5)) + OCEAN_GRID_OFFSET_X;
+	int ilat = ((int) floor(pos->lat * 2.5)) + OCEAN_GRID_OFFSET_Y;
 
 	if (ilat < 0 || ilat >= (OCEAN_GRID_Y - 1))
+	{
+		return false;
+	}
+
+	if (ilon < 0 || ilon > OCEAN_GRID_X)
 	{
 		return false;
 	}
@@ -377,8 +390,8 @@ PROTEUS_API bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData*
 	}
 
 
-	const double xFrac = (ilon == 0 && pos->lon == 180.0) ? 0.0 : (pos->lon * 2.5) - ((double) (ilon - 450));
-	const double yFrac = (pos->lat * 2.5) - ((double) (ilat - 196));
+	const double xFrac = (ilon == 0 && pos->lon == 180.0) ? 0.0 : (pos->lon * 2.5) - ((double) (ilon - OCEAN_GRID_OFFSET_X));
+	const double yFrac = (pos->lat * 2.5) - ((double) (ilat - OCEAN_GRID_OFFSET_Y));
 
 	const long tDiff = _oceanGridPhaseTime - time(0);
 	double tFrac = 1.0 - (((double) tDiff) / ((double) OCEAN_DATA_PHASE_IN_SECONDS));
@@ -615,17 +628,34 @@ static int readOceanPoint(char* s, float* x, float* y, float* temp, float* u, fl
 
 static void insertOceanGridPoint(OceanGridPoint* oceanGrid, float lon, float lat, float u, float v, float temp, float salinity)
 {
+	if (
+			!isfinite(lon) ||
+			!isfinite(lat) ||
+			!isfinite(u) ||
+			!isfinite(v) ||
+			!isfinite(temp) ||
+			!isfinite(salinity))
+	{
+		return;
+	}
+
 	if (lon >= 180.0)
 	{
 		lon -= 360.0;
 	}
 
-	int ilon = ((int) roundf(lon * 2.5f)) + 450;
-	int ilat = ((int) roundf(lat * 2.5f)) + 196;
+	int ilon = ((int) roundf(lon * 2.5f)) + OCEAN_GRID_OFFSET_X;
+	int ilat = ((int) roundf(lat * 2.5f)) + OCEAN_GRID_OFFSET_Y;
 
 	if (ilat < 0 || ilat >= OCEAN_GRID_Y)
 	{
-		ERRLOG4("Failed to insert ocean grid point at %f,%f (%d, %d).", lon, lat, ilon, ilat);
+		ERRLOG4("Failed to insert ocean grid point at %f,%f (%d,%d). Lat out of bounds.", lon, lat, ilon, ilat);
+		return;
+	}
+
+	if (ilon < 0 || ilon > OCEAN_GRID_X)
+	{
+		ERRLOG4("Failed to insert ocean grid point at %f,%f (%d,%d). Lon out of bounds.", lon, lat, ilon, ilat);
 		return;
 	}
 
@@ -647,6 +677,11 @@ static void insertOceanGridPoint(OceanGridPoint* oceanGrid, float lon, float lat
 static int getXYIndex(int x, int y)
 {
 	return y * OCEAN_GRID_X + x;
+}
+
+static bool validLonLat(double lon, double lat)
+{
+	return (lon >= -180.0 && lon <= 180.0 && lat >= -90.0 && lat <= 90.0);
 }
 
 static void computeOceanDataIce(proteus_OceanData* od)

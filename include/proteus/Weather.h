@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2024 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -87,8 +87,12 @@ PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, cons
  * 	               Setting this to true is useful as an optimization if only
  * 	               wind data is required, as the other values will not be
  * 	               unnecessarily computed.
+ *
+ * Returns
+ * 	true, if weather data is available and valid at the provided position
+ * 	false, if weather data is not available or not valid at the provided position
  */
-PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather* wx, bool windOnly);
+PROTEUS_API bool proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather* wx, bool windOnly);
 
 
 #ifdef __cplusplus

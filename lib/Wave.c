@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2021 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2024 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -35,10 +35,13 @@
 
 
 // NOTE: This module currently makes some fixed assumptions about the grid dimensions
-//       and time between forecast points (for blending).
+//       and time between forecast points (for interpolation).
 
 #define WAVE_GRID_X (360) // -180 to 179 - in 1 degree increments
 #define WAVE_GRID_Y (181) // -90 to 90 - in 1 degree increments
+
+#define WAVE_GRID_OFFSET_X (180)
+#define WAVE_GRID_OFFSET_Y (90)
 
 // 11 hours, 58 minutes
 #define WAVE_DATA_PHASE_IN_SECONDS (11 * (60 * 60) + (58 * 60))
@@ -67,6 +70,7 @@ static int readWavePoint(char* s, float* x, float* y, float* waveHeight);
 static void insertWaveGridPoint(WaveGridPoint* waveGrid, float lon, float lat, float waveHeight);
 
 static int getXYIndex(int x, int y);
+static bool validLonLat(double lon, double lat);
 
 
 PROTEUS_API int proteus_Wave_init(const char* f1File, const char* f2File)
@@ -133,11 +137,20 @@ PROTEUS_API int proteus_Wave_init(const char* f1File, const char* f2File)
 
 PROTEUS_API bool proteus_Wave_get(const proteus_GeoPos* pos, proteus_WaveData* wd)
 {
-	// NOTE: Constants below will require modification if WAVE_GRID_X or WAVE_GRID_Y values change.
-	int ilon = ((int) floor(pos->lon)) + 180;
-	int ilat = ((int) floor(pos->lat)) + 90;
+	if (!validLonLat(pos->lon, pos->lat))
+	{
+		return false;
+	}
+
+	int ilon = ((int) floor(pos->lon)) + WAVE_GRID_OFFSET_X;
+	int ilat = ((int) floor(pos->lat)) + WAVE_GRID_OFFSET_Y;
 
 	if (ilat < 0 || ilat >= (WAVE_GRID_Y - 1))
+	{
+		return false;
+	}
+
+	if (ilon < 0 || ilon > WAVE_GRID_X)
 	{
 		return false;
 	}
@@ -334,8 +347,8 @@ PROTEUS_API bool proteus_Wave_get(const proteus_GeoPos* pos, proteus_WaveData* w
 	}
 
 
-	const double xFrac = (ilon == 0 && pos->lon == 180.0) ? 0.0 : pos->lon - ((double) (ilon - 180));
-	const double yFrac = pos->lat - ((double) (ilat - 90));
+	const double xFrac = (ilon == 0 && pos->lon == 180.0) ? 0.0 : pos->lon - ((double) (ilon - WAVE_GRID_OFFSET_X));
+	const double yFrac = pos->lat - ((double) (ilat - WAVE_GRID_OFFSET_Y));
 
 	const long tDiff = _waveGridPhaseTime - time(0);
 	double tFrac = 1.0 - (((double) tDiff) / ((double) WAVE_DATA_PHASE_IN_SECONDS));
@@ -494,12 +507,18 @@ static void insertWaveGridPoint(WaveGridPoint* waveGrid, float lon, float lat, f
 		lon -= 360.0;
 	}
 
-	int ilon = ((int) roundf(lon)) + 180;
-	int ilat = ((int) roundf(lat)) + 90;
+	int ilon = ((int) roundf(lon)) + WAVE_GRID_OFFSET_X;
+	int ilat = ((int) roundf(lat)) + WAVE_GRID_OFFSET_Y;
 
 	if (ilat < 0 || ilat >= WAVE_GRID_Y)
 	{
-		ERRLOG4("Failed to insert wave grid point at %f,%f (%d, %d).", lon, lat, ilon, ilat);
+		ERRLOG4("Failed to insert wave grid point at %f,%f (%d,%d). Lat out of bounds.", lon, lat, ilon, ilat);
+		return;
+	}
+
+	if (ilon < 0 || ilon > WAVE_GRID_X)
+	{
+		ERRLOG4("Failed to insert wave grid point at %f,%f (%d,%d). Lon out of bounds.", lon, lat, ilon, ilat);
 		return;
 	}
 
@@ -516,6 +535,11 @@ static void insertWaveGridPoint(WaveGridPoint* waveGrid, float lon, float lat, f
 static int getXYIndex(int x, int y)
 {
 	return y * WAVE_GRID_X + x;
+}
+
+static bool validLonLat(double lon, double lat)
+{
+	return (lon >= -180.0 && lon <= 180.0 && lat >= -90.0 && lat <= 90.0);
 }
 
 

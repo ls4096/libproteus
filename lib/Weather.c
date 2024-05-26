@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2022 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2024 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -35,7 +35,7 @@
 #define UPDATER_THREAD_NAME "proteus_Weather"
 
 
-// NOTE: This module currently makes some fixed assumptions about the time between forecast points (for blending).
+// NOTE: This module currently makes some fixed assumptions about the time between forecast points (for interpolation).
 
 // 2 hours, 58 minutes
 #define WX_DATA_PHASE_IN_SECONDS (2 * (60 * 60) + (58 * 60))
@@ -135,6 +135,7 @@ static void insertWxGridCond(WxGridPoint* wxGrid, float lon, float lat, int valu
 
 static int getLonLatIndexForInsert(float lon, float lat);
 static int getXYIndex(int x, int y);
+static bool validLonLat(double lon, double lat);
 
 
 PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, const char* f2Dir)
@@ -249,17 +250,24 @@ fail:
 	return rc;
 }
 
-PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather* wx, bool windOnly)
+PROTEUS_API bool proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather* wx, bool windOnly)
 {
 	if (!_gridConf)
 	{
-		return;
+		return false;
+	}
+
+	if (!validLonLat(pos->lon, pos->lat))
+	{
+		return false;
 	}
 
 	// Integral coordinates on the weather grids (corresponding to the "A" points below)
+	// Values of "ilon" and "ilat" are assumed valid because of lon/lat check above.
 	int ilon = ((int) floor(pos->lon * _gridConf->scale)) + _gridConf->offsetX;
 	int ilat = ((int) floor(pos->lat * _gridConf->scale)) + _gridConf->offsetY;
 
+	// Wraparound at longitude 180
 	if (ilon == _gridConf->gridX)
 	{
 		ilon = 0;
@@ -268,7 +276,7 @@ PROTEUS_API void proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 	if (0 != pthread_rwlock_rdlock(&_wxGridLock))
 	{
 		ERRLOG("get: Failed to lock for read!");
-		return;
+		return false;
 	}
 
 	/**
@@ -506,6 +514,8 @@ done:
 	{
 		ERRLOG("get: Failed to unlock rwlock!");
 	}
+
+	return true;
 }
 
 
@@ -885,51 +895,83 @@ static int readWxPointI(char* s, float* x, float* y, int* n)
 
 static void insertWxGridUgrd(WxGridPoint* wxGrid, float lon, float lat, float ugrd)
 {
-	wxGrid[getLonLatIndexForInsert(lon, lat)].windU = ugrd;
+	if (validLonLat((double)lon, (double)lat))
+	{
+		wxGrid[getLonLatIndexForInsert(lon, lat)].windU = ugrd;
+	}
 }
 
 static void insertWxGridVgrd(WxGridPoint* wxGrid, float lon, float lat, float vgrd)
 {
-	wxGrid[getLonLatIndexForInsert(lon, lat)].windV = vgrd;
+	if (validLonLat((double)lon, (double)lat))
+	{
+		wxGrid[getLonLatIndexForInsert(lon, lat)].windV = vgrd;
+	}
 }
 
 static void insertWxGridGust(WxGridPoint* wxGrid, float lon, float lat, float gust)
 {
-	wxGrid[getLonLatIndexForInsert(lon, lat)].windGust = gust;
+	if (validLonLat((double)lon, (double)lat))
+	{
+		wxGrid[getLonLatIndexForInsert(lon, lat)].windGust = gust;
+	}
 }
 
 static void insertWxGridTmp(WxGridPoint* wxGrid, float lon, float lat, float tmp)
 {
-	wxGrid[getLonLatIndexForInsert(lon, lat)].temp = tmp;
+	if (validLonLat((double)lon, (double)lat))
+	{
+		wxGrid[getLonLatIndexForInsert(lon, lat)].temp = tmp;
+	}
 }
 
 static void insertWxGridDpt(WxGridPoint* wxGrid, float lon, float lat, float dpt)
 {
-	wxGrid[getLonLatIndexForInsert(lon, lat)].dewpoint = dpt;
+	if (validLonLat((double)lon, (double)lat))
+	{
+		wxGrid[getLonLatIndexForInsert(lon, lat)].dewpoint = dpt;
+	}
 }
 
 static void insertWxGridPres(WxGridPoint* wxGrid, float lon, float lat, float pres)
 {
-	wxGrid[getLonLatIndexForInsert(lon, lat)].pressure = pres;
+	if (validLonLat((double)lon, (double)lat))
+	{
+		wxGrid[getLonLatIndexForInsert(lon, lat)].pressure = pres;
+	}
 }
 
 static void insertWxGridCld(WxGridPoint* wxGrid, float lon, float lat, float cld)
 {
-	wxGrid[getLonLatIndexForInsert(lon, lat)].cloud = cld;
+	if (validLonLat((double)lon, (double)lat))
+	{
+		wxGrid[getLonLatIndexForInsert(lon, lat)].cloud = cld;
+	}
 }
 
 static void insertWxGridVis(WxGridPoint* wxGrid, float lon, float lat, float vis)
 {
-	wxGrid[getLonLatIndexForInsert(lon, lat)].visibility = vis;
+	if (validLonLat((double)lon, (double)lat))
+	{
+		wxGrid[getLonLatIndexForInsert(lon, lat)].visibility = vis;
+	}
 }
 
 static void insertWxGridPrate(WxGridPoint* wxGrid, float lon, float lat, float prate)
 {
-	wxGrid[getLonLatIndexForInsert(lon, lat)].prate = prate;
+	if (validLonLat((double)lon, (double)lat))
+	{
+		wxGrid[getLonLatIndexForInsert(lon, lat)].prate = prate;
+	}
 }
 
 static void insertWxGridCond(WxGridPoint* wxGrid, float lon, float lat, int value, uint8_t wxCond)
 {
+	if (!validLonLat((double)lon, (double)lat))
+	{
+		return;
+	}
+
 	if (value)
 	{
 		wxGrid[getLonLatIndexForInsert(lon, lat)].cond |= wxCond;
@@ -945,6 +987,7 @@ static int getLonLatIndexForInsert(float lon, float lat)
 	int ilon = ((int) roundf(lon * _gridConf->scale)) + _gridConf->offsetX;
 	int ilat = ((int) roundf(lat * _gridConf->scale)) + _gridConf->offsetY;
 
+	// Wraparound at longitude 180
 	if (ilon == _gridConf->gridX)
 	{
 		ilon = 0;
@@ -956,6 +999,11 @@ static int getLonLatIndexForInsert(float lon, float lat)
 static int getXYIndex(int x, int y)
 {
 	return y * _gridConf->gridX + x;
+}
+
+static bool validLonLat(double lon, double lat)
+{
+	return (lon >= -180.0 && lon <= 180.0 && lat >= -90.0 && lat <= 90.0);
 }
 
 

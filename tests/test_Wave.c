@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2024 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -14,6 +14,8 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <stdbool.h>
+
 #include "tests.h"
 #include "tests_assert.h"
 
@@ -24,6 +26,9 @@
 
 static int test_spatial_interpolation();
 static int test_spatial_interpolation_180();
+static int test_out_of_bounds_geo();
+
+static bool validLonLat(double lon, double lat);
 
 int test_Wave_run()
 {
@@ -83,6 +88,11 @@ int test_Wave_run()
 	}
 
 	if (test_spatial_interpolation_180() != 0)
+	{
+		return 1;
+	}
+
+	if (test_out_of_bounds_geo() != 0)
 	{
 		return 1;
 	}
@@ -193,4 +203,59 @@ static int test_spatial_interpolation_180()
 
 
 	return 0;
+}
+
+static int test_out_of_bounds_geo()
+{
+	// Some basic checks using out-of-bounds geographic coordinates
+
+	for (double lon = -360.0; lon <= 360.0; lon += 0.1)
+	{
+		for (double lat = -180.0; lat <= 180.0; lat += 0.1)
+		{
+			if (validLonLat(lon, lat))
+			{
+				continue;
+			}
+
+			const proteus_GeoPos p = { .lat = lat, .lon = lon };
+			proteus_WaveData wd;
+
+			if (proteus_Wave_get(&p, &wd))
+			{
+				printf("At %f,%f.\n", p.lat, p.lon);
+			}
+
+			IS_FALSE(proteus_Wave_get(&p, &wd));
+		}
+	}
+
+	for (double lon = -36000.0; lon <= 36000.0; lon += 9.9)
+	{
+		for (double lat = -18000.0; lat <= 18000.0; lat += 9.9)
+		{
+			if (validLonLat(lon, lat))
+			{
+				continue;
+			}
+
+			const proteus_GeoPos p = { .lat = lat, .lon = lon };
+			proteus_WaveData wd;
+
+			if (proteus_Wave_get(&p, &wd))
+			{
+				printf("At %f,%f.\n", p.lat, p.lon);
+			}
+
+			IS_FALSE(proteus_Wave_get(&p, &wd));
+		}
+	}
+
+
+	return 0;
+}
+
+static bool validLonLat(double lon, double lat)
+{
+	return (lon >= -180.0 && lon <= 180.0 && lat >= -90.0 && lat <= 90.0);
 }
