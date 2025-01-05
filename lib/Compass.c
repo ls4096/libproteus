@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2021 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2025 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -30,9 +30,9 @@
 #define MAG_GRID_X (360) // -180 to 179 - in 1 degree increments
 #define MAG_GRID_Y (181) // -90 to 90 - in 1 degree increments
 
-// Current data for years 2020-2025.
+// Current data for years 2020-2030.
 #define MAG_DATA_YEAR_START (2020)
-#define MAG_DATA_YEARS (6)
+#define MAG_DATA_YEARS (11)
 #define MAG_DATA_SEC_AT_START (1577836800)
 #define MAG_DATA_SEC_IN_YEAR (31557600)
 

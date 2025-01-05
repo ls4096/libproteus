@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2025 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -93,6 +93,8 @@ static const time_t T_2023 = MAG_DATA_SEC_2020 + (3 * MAG_DATA_SEC_IN_YEAR);
 static const time_t T_2024 = MAG_DATA_SEC_2020 + (4 * MAG_DATA_SEC_IN_YEAR);
 static const time_t T_2025 = MAG_DATA_SEC_2020 + (5 * MAG_DATA_SEC_IN_YEAR);
 static const time_t T_2026 = MAG_DATA_SEC_2020 + (6 * MAG_DATA_SEC_IN_YEAR);
+static const time_t T_2030 = MAG_DATA_SEC_2020 + (10 * MAG_DATA_SEC_IN_YEAR);
+static const time_t T_2031 = MAG_DATA_SEC_2020 + (11 * MAG_DATA_SEC_IN_YEAR);
 
 static int testCompassMag()
 {
@@ -113,7 +115,9 @@ static int testCompassMag()
 	EQUALS_FLT(5.06, proteus_Compass_magdec(&p, T_2023));
 	EQUALS_FLT(5.04, proteus_Compass_magdec(&p, T_2024));
 	EQUALS_FLT(5.01, proteus_Compass_magdec(&p, T_2025));
-	EQUALS_FLT(5.01, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(4.92, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(4.76, proteus_Compass_magdec(&p, T_2030));
+	EQUALS_FLT(4.76, proteus_Compass_magdec(&p, T_2031));
 
 	p.lat = -80.0;
 	p.lon = 50.0;
@@ -124,7 +128,9 @@ static int testCompassMag()
 	EQUALS_FLT(-67.49, proteus_Compass_magdec(&p, T_2023));
 	EQUALS_FLT(-67.65, proteus_Compass_magdec(&p, T_2024));
 	EQUALS_FLT(-67.82, proteus_Compass_magdec(&p, T_2025));
-	EQUALS_FLT(-67.82, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(-67.95, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(-68.58, proteus_Compass_magdec(&p, T_2030));
+	EQUALS_FLT(-68.58, proteus_Compass_magdec(&p, T_2031));
 
 	p.lat = 40.0;
 	p.lon = -60.0;
@@ -135,7 +141,9 @@ static int testCompassMag()
 	EQUALS_FLT(-15.94, proteus_Compass_magdec(&p, T_2023));
 	EQUALS_FLT(-15.82, proteus_Compass_magdec(&p, T_2024));
 	EQUALS_FLT(-15.70, proteus_Compass_magdec(&p, T_2025));
-	EQUALS_FLT(-15.70, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(-15.60, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(-15.15, proteus_Compass_magdec(&p, T_2030));
+	EQUALS_FLT(-15.15, proteus_Compass_magdec(&p, T_2031));
 
 	p.lat = -65.0;
 	p.lon = 70.0;
@@ -146,7 +154,9 @@ static int testCompassMag()
 	EQUALS_FLT(-72.73, proteus_Compass_magdec(&p, T_2023));
 	EQUALS_FLT(-72.92, proteus_Compass_magdec(&p, T_2024));
 	EQUALS_FLT(-73.10, proteus_Compass_magdec(&p, T_2025));
-	EQUALS_FLT(-73.10, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(-73.28, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(-74.03, proteus_Compass_magdec(&p, T_2030));
+	EQUALS_FLT(-74.03, proteus_Compass_magdec(&p, T_2031));
 
 	p.lat = -36.0;
 	p.lon = 0.0;
@@ -157,7 +167,9 @@ static int testCompassMag()
 	EQUALS_FLT(-22.16, proteus_Compass_magdec(&p, T_2023));
 	EQUALS_FLT(-21.98, proteus_Compass_magdec(&p, T_2024));
 	EQUALS_FLT(-21.80, proteus_Compass_magdec(&p, T_2025));
-	EQUALS_FLT(-21.80, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(-21.92, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(-21.41, proteus_Compass_magdec(&p, T_2030));
+	EQUALS_FLT(-21.41, proteus_Compass_magdec(&p, T_2031));
 
 	p.lat = -36.0;
 	p.lon = -0.0;
@@ -168,7 +180,9 @@ static int testCompassMag()
 	EQUALS_FLT(-22.16, proteus_Compass_magdec(&p, T_2023));
 	EQUALS_FLT(-21.98, proteus_Compass_magdec(&p, T_2024));
 	EQUALS_FLT(-21.80, proteus_Compass_magdec(&p, T_2025));
-	EQUALS_FLT(-21.80, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(-21.92, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(-21.41, proteus_Compass_magdec(&p, T_2030));
+	EQUALS_FLT(-21.41, proteus_Compass_magdec(&p, T_2031));
 
 
 	p.lat = -36.0;
@@ -180,7 +194,9 @@ static int testCompassMag()
 	EQUALS_FLT(20.18, proteus_Compass_magdec(&p, T_2023));
 	EQUALS_FLT(20.27, proteus_Compass_magdec(&p, T_2024));
 	EQUALS_FLT(20.36, proteus_Compass_magdec(&p, T_2025));
-	EQUALS_FLT(20.36, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(20.35, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(20.60, proteus_Compass_magdec(&p, T_2030));
+	EQUALS_FLT(20.60, proteus_Compass_magdec(&p, T_2031));
 
 	p.lat = -36.0;
 	p.lon = 180.0;
@@ -191,7 +207,9 @@ static int testCompassMag()
 	EQUALS_FLT(20.18, proteus_Compass_magdec(&p, T_2023));
 	EQUALS_FLT(20.27, proteus_Compass_magdec(&p, T_2024));
 	EQUALS_FLT(20.36, proteus_Compass_magdec(&p, T_2025));
-	EQUALS_FLT(20.36, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(20.35, proteus_Compass_magdec(&p, T_2026));
+	EQUALS_FLT(20.60, proteus_Compass_magdec(&p, T_2030));
+	EQUALS_FLT(20.60, proteus_Compass_magdec(&p, T_2031));
 
 
 	if (test_spatial_interpolation() != 0)
@@ -340,10 +358,10 @@ static int test_temporal_interpolation()
 	p.lon = 20.0;
 	EQUALS_FLT(0.25 * -31.23 + 0.75 * -31.38, proteus_Compass_magdec(&p, T_2024 * 0.25 + T_2025 * 0.75));
 
-	// 2025.75
+	// 2030.75
 	p.lat = -40.0;
 	p.lon = 20.0;
-	EQUALS_FLT(-31.38, proteus_Compass_magdec(&p, T_2025 * 0.25 + T_2026 * 0.75));
+	EQUALS_FLT(-32.78, proteus_Compass_magdec(&p, T_2030 * 0.25 + T_2031 * 0.75));
 
 
 	return 0;
