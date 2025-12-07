@@ -37,23 +37,23 @@ SOLIB_DEPS = \
 
 
 lib/%.o: lib/%.c
-	$(CC) -fvisibility=hidden -fPIC -c -std=c99 -pedantic -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE -o $@ $<
+	$(CC) -fvisibility=hidden -fPIC -c -std=c99 -pedantic -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE $(CFLAGS) -o $@ $<
 
 libproteus.so: $(LIB_OBJS)
-	$(CC) -fvisibility=hidden -shared -fPIC -O2 -o libproteus.so lib/*.o $(SOLIB_DEPS)
+	$(CC) -fvisibility=hidden -shared -fPIC -O2 $(CFLAGS) -o libproteus.so lib/*.o $(SOLIB_DEPS)
 
 libproteus.a: $(LIB_OBJS)
 	$(AR) rcs libproteus.a lib/*.o
 
 
 tests/%.o: tests/%.c
-	$(CC) -fPIC -c -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE -o $@ $<
+	$(CC) -fPIC -c -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE $(CFLAGS) -o $@ $<
 
 proteus_tests: $(TESTS_OBJS) libproteus.so
-	$(CC) -O2 -o proteus_tests tests/*.o -L. -lproteus
+	$(CC) -O2 $(CFLAGS) -o proteus_tests tests/*.o -L. -lproteus
 
 proteus_tests_static: $(TESTS_OBJS) libproteus.a
-	$(CC) -O2 -o proteus_tests_static tests/*.o libproteus.a $(SOLIB_DEPS)
+	$(CC) -O2 $(CFLAGS) -o proteus_tests_static tests/*.o libproteus.a $(SOLIB_DEPS)
 
 
 clean:
