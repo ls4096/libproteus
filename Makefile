@@ -5,18 +5,18 @@ tests: proteus_tests proteus_tests_static libproteus
 
 
 LIB_OBJS = \
-	lib/Celestial.o \
-	lib/Compass.o \
-	lib/Decompress.o \
-	lib/ErrLog.o \
-	lib/GeoInfo.o \
-	lib/GeoPos.o \
-	lib/GeoVec.o \
-	lib/Ocean.o \
-	lib/ScalarConv.o \
-	lib/Wave.o \
-	lib/Weather.o \
-	lib/proteus.o
+	src/Celestial.o \
+	src/Compass.o \
+	src/Decompress.o \
+	src/ErrLog.o \
+	src/GeoInfo.o \
+	src/GeoPos.o \
+	src/GeoVec.o \
+	src/Ocean.o \
+	src/ScalarConv.o \
+	src/Wave.o \
+	src/Weather.o \
+	src/proteus.o
 
 TESTS_OBJS = \
 	tests/tests_main.o \
@@ -36,14 +36,14 @@ SOLIB_DEPS = \
 	-lpthread
 
 
-lib/%.o: lib/%.c
+src/%.o: src/%.c
 	$(CC) -fvisibility=hidden -fPIC -c -std=c99 -pedantic -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE $(CFLAGS) -o $@ $<
 
 libproteus.so: $(LIB_OBJS)
-	$(CC) -fvisibility=hidden -shared -fPIC -O2 $(CFLAGS) -o libproteus.so lib/*.o $(SOLIB_DEPS)
+	$(CC) -fvisibility=hidden -shared -fPIC -O2 $(CFLAGS) -o libproteus.so src/*.o $(SOLIB_DEPS)
 
 libproteus.a: $(LIB_OBJS)
-	$(AR) rcs libproteus.a lib/*.o
+	$(AR) rcs libproteus.a src/*.o
 
 
 tests/%.o: tests/%.c
@@ -57,4 +57,4 @@ proteus_tests_static: $(TESTS_OBJS) libproteus.a
 
 
 clean:
-	rm -rf lib/*.o tests/*.o libproteus.so libproteus.a proteus_tests proteus_tests_static
+	rm -rf src/*.o tests/*.o libproteus.so libproteus.a proteus_tests proteus_tests_static
