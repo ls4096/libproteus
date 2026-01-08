@@ -1,24 +1,29 @@
 # libProteus
 
-A global weather, geographic information, and navigation simulator library, used by SailNavSim (https://8bitbyte.ca/sailnavsim/).
+A global weather, geographic information, and navigation simulator library, used by SailNavSim (as seen here: https://8bitbyte.ca/sailnavsim/).
 
 ## Dependencies
 
-### Build system
-
-C compiler (such as gcc, clang, etc.) and Make.
-
 ### Libraries
 
-| Name | Description | Version |
-| ------------- | ------------- | ------------- |
-| zlib library (with headers) | Lossless data-compression library | -  |
-| pthread library (with headers) | Allows the program to control multiple different flows of tasks that overlap in time | -     |
+- POSIX threads (pthread) library, with headers
+- zlib library, with headers
 
-## How to build libProteus (shared library)
+### Build tools
+
+- Make
+- C compiler (gcc or clang, etc.)
+
+### Tested build/run environments
+
+- GNU/Linux (various distros), x86-64
+
+## How to build
+
 `make libproteus`
 
-## How to build and run tests
+## Build and run tests
+
 `make tests`
 
 `./run_tests.sh`
