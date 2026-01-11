@@ -50,7 +50,7 @@ tests/%.o: tests/%.c
 	$(CC) -fPIC -c -Wall -Wextra -Iinclude -O2 -D_GNU_SOURCE $(CFLAGS) -o $@ $<
 
 proteus_tests: $(TESTS_OBJS) libproteus.so
-	$(CC) -O2 $(CFLAGS) -o proteus_tests tests/*.o -L. -lproteus
+	$(CC) -O2 $(CFLAGS) -o proteus_tests tests/*.o -L. -lproteus $(SOLIB_DEPS)
 
 proteus_tests_static: $(TESTS_OBJS) libproteus.a
 	$(CC) -O2 $(CFLAGS) -o proteus_tests_static tests/*.o libproteus.a $(SOLIB_DEPS)

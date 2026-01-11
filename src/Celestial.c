@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2021-2022 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2021-2026 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -49,7 +49,9 @@ static const double STAR_EPH_J2000[] = {
 
 
 static double computeObliquityForJulianCentury(double t);
+static void computeSunEq(double jd, proteus_CelestialEquatorialCoord* ec);
 static void computeStarEq(int obj, double jd, proteus_CelestialEquatorialCoord* ec);
+static void normalizeEc(proteus_CelestialEquatorialCoord* ec);
 
 
 PROTEUS_API double proteus_Celestial_getJulianDayForTime(time_t t)
@@ -68,38 +70,16 @@ PROTEUS_API int proteus_Celestial_getEquatorialForObject(
 		// Invalid object
 		return -1;
 	}
-	else if (obj > PROTEUS_CELESTIAL_OBJ_SUN)
+	else if (obj == PROTEUS_CELESTIAL_OBJ_SUN)
+	{
+		// Sun
+		computeSunEq(jd, ec);
+	}
+	else
 	{
 		// Star object
-		computeStarEq(obj, jd, ec);
-		return 0;
+		computeStarEq(obj - 1, jd, ec);
 	}
-
-
-	// Calculations for Sun below...
-
-	const double N = jd - 2451545.0;
-	const double T = N / 36525.0;
-	const double L = fmod(280.460 + 0.9856474 * N, 360.0);
-	const double G = fmod(357.528 + 0.9856003 * N, 360.0);
-
-	const double LA = L +
-		1.915 * sin(ScalarConv_deg2rad(G)) +
-		0.020 * sin(ScalarConv_deg2rad(2.0 * G));
-
-	const double LA_rad = ScalarConv_deg2rad(LA);
-	const double E_rad = ScalarConv_deg2rad(computeObliquityForJulianCentury(T));
-
-	const double RA_rad = atan2(cos(E_rad) * sin(LA_rad), cos(LA_rad));
-	const double DEC_rad = asin(sin(E_rad) * sin(LA_rad));
-
-	ec->ra = fmod(ScalarConv_rad2deg(RA_rad), 360.0) / 15.0;
-	while (ec->ra < 0.0)
-	{
-		ec->ra += 24.0;
-	}
-
-	ec->dec = ScalarConv_rad2deg(DEC_rad);
 
 	return 0;
 }
@@ -177,38 +157,60 @@ static double computeObliquityForJulianCentury(double t)
 	) / 3600.0;
 }
 
+static void computeSunEq(double jd, proteus_CelestialEquatorialCoord* ec)
+{
+	const double N = jd - 2451545.0;
+	const double T = N / 36525.0;
+	const double L = fmod(280.460 + 0.9856474 * N, 360.0);
+	const double G = fmod(357.528 + 0.9856003 * N, 360.0);
+
+	const double LA = L +
+		1.915 * sin(ScalarConv_deg2rad(G)) +
+		0.020 * sin(ScalarConv_deg2rad(2.0 * G));
+
+	const double LA_rad = ScalarConv_deg2rad(LA);
+	const double E_rad = ScalarConv_deg2rad(computeObliquityForJulianCentury(T));
+
+	const double RA_rad = atan2(cos(E_rad) * sin(LA_rad), cos(LA_rad));
+	const double DEC_rad = asin(sin(E_rad) * sin(LA_rad));
+
+	ec->ra = ScalarConv_rad2deg(RA_rad) / 15.0;
+	ec->dec = ScalarConv_rad2deg(DEC_rad);
+	normalizeEc(ec);
+}
+
 static void computeStarEq(int obj, double jd, proteus_CelestialEquatorialCoord* ec)
 {
-	// Adjust object identifier value for positions in array.
-	obj--;
-
 	const double Y = (jd - 2451545.0) / 365.25;
-	const double T = Y / 100.0;
 
+	double RA_hr = STAR_EPH_J2000[4 * obj] + (STAR_EPH_J2000[4 * obj + 2] * Y) / (1000.0 * 3600.0 * 15.0);
+	double DEC_deg = STAR_EPH_J2000[4 * obj + 1] + (STAR_EPH_J2000[4 * obj + 3] * Y) / (1000.0 * 3600.0);
 
-	double RA_2000_hr = STAR_EPH_J2000[4 * obj] + (STAR_EPH_J2000[4 * obj + 2] * Y) / (1000.0 * 3600.0 * 15.0);
-	double DEC_2000_deg = STAR_EPH_J2000[4 * obj + 1] + (STAR_EPH_J2000[4 * obj + 3] * Y) / (1000.0 * 3600.0);
+	if (DEC_deg < -90.0) { DEC_deg = -90.0; }
+	else if (DEC_deg > 90.0) { DEC_deg = 90.0; }
 
-	while (RA_2000_hr < 0.0) { RA_2000_hr += 24.0; }
-	while (RA_2000_hr >= 24.0) { RA_2000_hr -= 24.0; }
+	const double RA_rad = ScalarConv_deg2rad(RA_hr * 15.0);
+	const double DEC_rad = ScalarConv_deg2rad(DEC_deg);
 
-	if (DEC_2000_deg < -90.0) { DEC_2000_deg = -90.0; }
-	else if (DEC_2000_deg > 90.0) { DEC_2000_deg = 90.0; }
+	const double T = Y * 0.01 / 3600.0;
+	const double T2 = T * T;
+	const double T3 = T2 * T;
 
+	const double zeta  = ScalarConv_deg2rad(2306.2181 * T + 0.30188 * T2 + 0.017998 * T3);
+	const double z     = ScalarConv_deg2rad(2306.2181 * T + 1.09468 * T2 + 0.018203 * T3);
+	const double theta = ScalarConv_deg2rad(2004.3109 * T - 0.42665 * T2 - 0.041833 * T3);
 
-	const double RA_2000_rad = RA_2000_hr * 15.0 * M_PI / 180.0;
-	const double DEC_2000_rad = ScalarConv_deg2rad(DEC_2000_deg);
+	const double A = cos(DEC_rad) * sin(RA_rad + z);
+	const double B = cos(theta) * cos(DEC_rad) * cos(RA_rad + z) - sin(theta) * sin(DEC_rad);
+	const double C = sin(theta) * cos(DEC_rad) * cos(RA_rad + z) + cos(theta) * sin(DEC_rad);
 
-	const double E_rad = ScalarConv_deg2rad(computeObliquityForJulianCentury(T));
-	const double P_deg = ((5028.796195 * T) + (1.1054348 * T * T)) / 3600.0;
+	ec->ra = ScalarConv_rad2deg(atan2(A, B) + zeta) / 15.0;
+	ec->dec = ScalarConv_rad2deg(asin(C));
+	normalizeEc(ec);
+}
 
-	const double RA_DELTA_hr = (P_deg / 15.0) * (cos(E_rad) + sin(E_rad) * sin(RA_2000_rad) * tan(DEC_2000_rad));
-	const double DEC_DELTA_deg = P_deg * cos(RA_2000_rad) * sin(E_rad);
-
-
-	ec->ra = RA_2000_hr + RA_DELTA_hr;
-	ec->dec = DEC_2000_deg + DEC_DELTA_deg;
-
+static void normalizeEc(proteus_CelestialEquatorialCoord* ec)
+{
 	while (ec->ra < 0.0) { ec->ra += 24.0; }
 	while (ec->ra >= 24.0) { ec->ra -= 24.0; }
 
