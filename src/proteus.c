@@ -19,12 +19,17 @@
 #include "proteus/proteus.h"
 
 #define PROTEUS_VERSION_MAJOR 0
-#define PROTEUS_VERSION_MINOR 10
+#define PROTEUS_VERSION_MINOR 11
 #define PROTEUS_VERSION_PATCH 0
+#define PROTEUS_VERSION_EXTRA "-dev"
 
 #define STRX(x) #x
 #define STR(x) STRX(x)
-#define PROTEUS_VERSION_STRING STR(PROTEUS_VERSION_MAJOR) "." STR(PROTEUS_VERSION_MINOR) "." STR(PROTEUS_VERSION_PATCH)
+#define PROTEUS_VERSION_STRING \
+	STR(PROTEUS_VERSION_MAJOR) "." \
+	STR(PROTEUS_VERSION_MINOR) "." \
+	STR(PROTEUS_VERSION_PATCH) \
+	PROTEUS_VERSION_EXTRA
 
 PROTEUS_API int proteus_getVersionMajor()
 {
@@ -39,6 +44,11 @@ PROTEUS_API int proteus_getVersionMinor()
 PROTEUS_API int proteus_getVersionPatch()
 {
 	return PROTEUS_VERSION_PATCH;
+}
+
+PROTEUS_API const char* proteus_getVersionExtra()
+{
+	return PROTEUS_VERSION_EXTRA;
 }
 
 PROTEUS_API const char* proteus_getVersionString()

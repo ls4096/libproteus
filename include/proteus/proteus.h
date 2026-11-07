@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2026 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -40,6 +40,11 @@ PROTEUS_API int proteus_getVersionMinor();
  * Returns the library patch version number, as an integer.
  */
 PROTEUS_API int proteus_getVersionPatch();
+
+/**
+ * Returns the library version extra data, as a string.
+ */
+PROTEUS_API const char* proteus_getVersionExtra();
 
 /**
  * Returns the complete library version number, as a string.

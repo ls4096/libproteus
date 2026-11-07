@@ -51,7 +51,12 @@ int main()
 	int testres;
 	int sum = 0;
 
-	printf("Running tests for libproteus v%s\n", proteus_getVersionString());
+	printf("Running tests for libproteus v%s (%d, %d, %d, %s)\n",
+			proteus_getVersionString(),
+			proteus_getVersionMajor(),
+			proteus_getVersionMinor(),
+			proteus_getVersionPatch(),
+			proteus_getVersionExtra());
 
 	for (size_t i = 0; i < (sizeof(TEST_NAMES) / sizeof(const char*)); i++)
 	{

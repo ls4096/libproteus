@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2024 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2026 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -297,31 +297,34 @@ PROTEUS_API bool proteus_Weather_get(const proteus_GeoPos* pos, proteus_Weather*
 	 * to compute the final weather data for a given point at the present time.
 	 */
 
+	const int xyIndexA = getXYIndex(ilon, ilat);
+	const int xyIndexB = getXYIndex(ilon + 1, ilat);
+	const int xyIndexC = getXYIndex(ilon, ilat + 1);
+	const int xyIndexD = getXYIndex(ilon + 1, ilat + 1);
+
 	// Grid points {A,B,C,D}0 from weather grid 0
-	const WxGridPoint* wxGridPtA0 = _wxGrid0 + getXYIndex(ilon, ilat);
-	const WxGridPoint* wxGridPtB0 = _wxGrid0 + getXYIndex(ilon + 1, ilat);
-	const WxGridPoint* wxGridPtC0 = _wxGrid0 + getXYIndex(ilon, ilat + 1);
-	const WxGridPoint* wxGridPtD0 = _wxGrid0 + getXYIndex(ilon + 1, ilat + 1);
+	const WxGridPoint* wxGridPtA0 = _wxGrid0 + xyIndexA;
+	const WxGridPoint* wxGridPtB0 = _wxGrid0 + xyIndexB;
+	const WxGridPoint* wxGridPtC0 = _wxGrid0 + xyIndexC;
+	const WxGridPoint* wxGridPtD0 = _wxGrid0 + xyIndexD;
 
 	// Grid points {A,B,C,D}1 from weather grid 1
-	const WxGridPoint* wxGridPtA1 = _wxGrid1 + getXYIndex(ilon, ilat);
-	const WxGridPoint* wxGridPtB1 = _wxGrid1 + getXYIndex(ilon + 1, ilat);
-	const WxGridPoint* wxGridPtC1 = _wxGrid1 + getXYIndex(ilon, ilat + 1);
-	const WxGridPoint* wxGridPtD1 = _wxGrid1 + getXYIndex(ilon + 1, ilat + 1);
+	const WxGridPoint* wxGridPtA1 = _wxGrid1 + xyIndexA;
+	const WxGridPoint* wxGridPtB1 = _wxGrid1 + xyIndexB;
+	const WxGridPoint* wxGridPtC1 = _wxGrid1 + xyIndexC;
+	const WxGridPoint* wxGridPtD1 = _wxGrid1 + xyIndexD;
 
 	if (ilon == _gridConf->gridX - 1)
 	{
 		// Just west of the 180 degree line of longitude, so B and D points wrap around to ilon=0.
+		const int ib = getXYIndex(0, ilat);
+		const int id = getXYIndex(0, ilat + 1);
 
-		wxGridPtA0 = _wxGrid0 + getXYIndex(ilon, ilat);
-		wxGridPtB0 = _wxGrid0 + getXYIndex(0, ilat);
-		wxGridPtC0 = _wxGrid0 + getXYIndex(ilon, ilat + 1);
-		wxGridPtD0 = _wxGrid0 + getXYIndex(0, ilat + 1);
+		wxGridPtB0 = _wxGrid0 + ib;
+		wxGridPtD0 = _wxGrid0 + id;
 
-		wxGridPtA1 = _wxGrid1 + getXYIndex(ilon, ilat);
-		wxGridPtB1 = _wxGrid1 + getXYIndex(0, ilat);
-		wxGridPtC1 = _wxGrid1 + getXYIndex(ilon, ilat + 1);
-		wxGridPtD1 = _wxGrid1 + getXYIndex(0, ilat + 1);
+		wxGridPtB1 = _wxGrid1 + ib;
+		wxGridPtD1 = _wxGrid1 + id;
 	}
 
 	if (ilat == _gridConf->gridY - 1)
@@ -819,8 +822,11 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 			goto fail;
 		}
 
-		// Update, so free grid 0 data, grid 0 gets grid 1 data, and grid 1 gets latest data.
-		free(_wxGrid0);
+		// Update the grids:
+		// 1. grid 0 data to be freed
+		// 2. grid 0 gets grid 1 data
+		// 3. grid 1 gets new data
+		WxGridPoint* oldWxGrid = _wxGrid0;
 		_wxGrid0 = _wxGrid1;
 		_wxGrid1 = wxGrid;
 
@@ -830,6 +836,8 @@ static void updateWxGrid(int grid, const char* wxDataDirPath)
 		{
 			ERRLOG("updateWxGrid: Failed to unlock rwlock!");
 		}
+
+		free(oldWxGrid);
 
 		ERRLOG2("Updated weather grids (latest from %s). Grid phase time: %lu", wxDataDirPath, _wxGridPhaseTime);
 	}

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2024 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2026 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -186,14 +186,10 @@ PROTEUS_API bool proteus_Ocean_get(const proteus_GeoPos* pos, proteus_OceanData*
 
 	if (ilon == OCEAN_GRID_X - 1)
 	{
-		oceanGridPtA0 = _oceanGrid0 + getXYIndex(ilon, ilat);
 		oceanGridPtB0 = _oceanGrid0 + getXYIndex(0, ilat);
-		oceanGridPtC0 = _oceanGrid0 + getXYIndex(ilon, ilat + 1);
 		oceanGridPtD0 = _oceanGrid0 + getXYIndex(0, ilat + 1);
 
-		oceanGridPtA1 = _oceanGrid1 + getXYIndex(ilon, ilat);
 		oceanGridPtB1 = _oceanGrid1 + getXYIndex(0, ilat);
-		oceanGridPtC1 = _oceanGrid1 + getXYIndex(ilon, ilat + 1);
 		oceanGridPtD1 = _oceanGrid1 + getXYIndex(0, ilat + 1);
 	}
 
@@ -560,8 +556,11 @@ static void updateOceanGrid(int grid, const char* oceanDataPath)
 			goto fail;
 		}
 
-		// Update, so free grid 0 data, grid 0 gets grid 1 data, and grid 1 gets latest data.
-		free(_oceanGrid0);
+		// Update the grids:
+		// 1. grid 0 data to be freed
+		// 2. grid 0 gets grid 1 data
+		// 3. grid 1 gets new data
+		OceanGridPoint* oldOceanGrid = _oceanGrid0;
 		_oceanGrid0 = _oceanGrid1;
 		_oceanGrid1 = oceanGrid;
 
@@ -571,6 +570,8 @@ static void updateOceanGrid(int grid, const char* oceanDataPath)
 		{
 			ERRLOG("updateOceanGrid: Failed to unlock rwlock!");
 		}
+
+		free(oldOceanGrid);
 
 		ERRLOG2("Updated ocean grids (latest from %s). Grid phase time: %lu", oceanDataPath, _oceanGridPhaseTime);
 	}

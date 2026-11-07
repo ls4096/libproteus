@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2021 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2026 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -133,7 +133,7 @@ PROTEUS_API bool proteus_GeoInfo_isWater(const proteus_GeoPos* pos)
 		loadSquareDegree(sd, ilon, ilat);
 	}
 
-	if (sd->grid == 0)
+	if (!sd->grid)
 	{
 		// No grid means there was no data file for this square degree.
 		if (0 != pthread_mutex_unlock(l))
@@ -291,11 +291,13 @@ static void* gridPrunerMain()
 		unsigned int griddedCount = 0;
 		unsigned int retainedCount = 0;
 
-		const time_t curTime = time(0);
+		const time_t expireTime = time(0) - GRID_PRUNER_EXPIRY;
 
 		for (int i = 0; i < NUM_GRIDS; i++)
 		{
 			SquareDegree* sd = _grids + i;
+			uint8_t* gridToFree = 0;
+
 			pthread_mutex_t* l = &sd->lock;
 			if (0 != pthread_mutex_lock(l))
 			{
@@ -307,13 +309,14 @@ static void* gridPrunerMain()
 			{
 				loadedCount++;
 
-				if (sd->grid != 0)
+				if (sd->grid)
 				{
 					griddedCount++;
 
-					if (sd->lastUsed < curTime - GRID_PRUNER_EXPIRY)
+					if (sd->lastUsed < expireTime)
 					{
-						free(sd->grid);
+						// Grid hasn't been referenced recently, so free it.
+						gridToFree = sd->grid;
 						sd->grid = 0;
 						sd->loaded = false;
 					}
@@ -328,6 +331,11 @@ static void* gridPrunerMain()
 			{
 				ERRLOG("gridPrunerMain: Failed to unlock mutex!");
 				break;
+			}
+
+			if (gridToFree)
+			{
+				free(gridToFree);
 			}
 		}
 

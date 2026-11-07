@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2024 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2026 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -179,14 +179,10 @@ PROTEUS_API bool proteus_Wave_get(const proteus_GeoPos* pos, proteus_WaveData* w
 
 	if (ilon == WAVE_GRID_X - 1)
 	{
-		waveGridPtA0 = _waveGrid0 + getXYIndex(ilon, ilat);
 		waveGridPtB0 = _waveGrid0 + getXYIndex(0, ilat);
-		waveGridPtC0 = _waveGrid0 + getXYIndex(ilon, ilat + 1);
 		waveGridPtD0 = _waveGrid0 + getXYIndex(0, ilat + 1);
 
-		waveGridPtA1 = _waveGrid1 + getXYIndex(ilon, ilat);
 		waveGridPtB1 = _waveGrid1 + getXYIndex(0, ilat);
-		waveGridPtC1 = _waveGrid1 + getXYIndex(ilon, ilat + 1);
 		waveGridPtD1 = _waveGrid1 + getXYIndex(0, ilat + 1);
 	}
 
@@ -452,8 +448,11 @@ static void updateWaveGrid(int grid, const char* waveDataPath)
 			goto fail;
 		}
 
-		// Update, so free grid 0 data, grid 0 gets grid 1 data, and grid 1 gets latest data.
-		free(_waveGrid0);
+		// Update the grids:
+		// 1. grid 0 data to be freed
+		// 2. grid 0 gets grid 1 data
+		// 3. grid 1 gets new data
+		WaveGridPoint* oldWaveGrid = _waveGrid0;
 		_waveGrid0 = _waveGrid1;
 		_waveGrid1 = waveGrid;
 
@@ -463,6 +462,8 @@ static void updateWaveGrid(int grid, const char* waveDataPath)
 		{
 			ERRLOG("updateWaveGrid: Failed to unlock rwlock!");
 		}
+
+		free(oldWaveGrid);
 
 		ERRLOG2("Updated wave grids (latest from %s). Grid phase time: %lu", waveDataPath, _waveGridPhaseTime);
 	}
