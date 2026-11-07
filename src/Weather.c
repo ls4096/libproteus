@@ -27,12 +27,12 @@
 #include "proteus_internal.h"
 
 #include "proteus/Weather.h"
+#include "proteus/BackgroundWorker.h"
 #include "ScalarConv_internal.h"
 #include "Constants.h"
 #include "ErrLog.h"
 
 #define ERRLOG_ID "proteus_Weather"
-#define UPDATER_THREAD_NAME "proteus_Weather"
 
 
 // NOTE: This module currently makes some fixed assumptions about the time between forecast points (for interpolation).
@@ -108,14 +108,10 @@ static time_t _wxGridPhaseTime = 0;
 static WxGridConfig* _gridConf = 0;
 
 
-static void resetWx(bool stopThread);
+static void resetWx(bool removeUpdaterJob);
 
-static pthread_t _wxUpdaterThread;
-static void* wxUpdaterMain();
-
-static bool _wxUpdaterThreadStop = false;
-static pthread_mutex_t _wxUpdaterThreadRunLock;
-static pthread_cond_t _wxUpdaterThreadCond;
+static int _wxUpdaterJobId = -1;
+static int wxUpdaterJob();
 
 
 static void updateWxGrid(int grid, const char* wxDataDirPath);
@@ -138,7 +134,7 @@ static int getXYIndex(int x, int y);
 static bool validLonLat(double lon, double lat);
 
 
-PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, const char* f2Dir)
+PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, const char* f2Dir, bool enableBgJobs)
 {
 	if (sourceDataGrid < PROTEUS_WEATHER_SOURCE_DATA_GRID_1P00 ||
 			sourceDataGrid > PROTEUS_WEATHER_SOURCE_DATA_GRID_0P25)
@@ -172,18 +168,6 @@ PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, cons
 	if (0 != pthread_rwlock_init(&_wxGridLock, 0))
 	{
 		ERRLOG("Failed to init rwlock!");
-		return -4;
-	}
-
-	if (0 != pthread_mutex_init(&_wxUpdaterThreadRunLock, 0))
-	{
-		ERRLOG("Failed to init mutex!");
-		return -4;
-	}
-
-	if (0 != pthread_cond_init(&_wxUpdaterThreadCond, 0))
-	{
-		ERRLOG("Failed to init cond!");
 		return -4;
 	}
 
@@ -226,18 +210,16 @@ PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, cons
 		goto fail;
 	}
 
-	if (0 != pthread_create(&_wxUpdaterThread, 0, &wxUpdaterMain, 0))
+	if (enableBgJobs)
 	{
-		rc = -2;
-		goto fail;
+		_wxUpdaterJobId = proteus_BackgroundWorker_addJob(&wxUpdaterJob, 0, 0);
+		if (_wxUpdaterJobId < 0)
+		{
+			ERRLOG("Failed to add weather updater job!");
+			rc = -5;
+			goto fail;
+		}
 	}
-
-#if defined(_GNU_SOURCE) && defined(__GLIBC__)
-	if (0 != pthread_setname_np(_wxUpdaterThread, UPDATER_THREAD_NAME))
-	{
-		ERRLOG1("Couldn't set thread name to %s. Continuing anyway.", UPDATER_THREAD_NAME);
-	}
-#endif
 
 	ERRLOG2("Weather grid phase time: %lu (%ld seconds from now).", _wxGridPhaseTime, (_wxGridPhaseTime - curTime));
 
@@ -1015,24 +997,20 @@ static bool validLonLat(double lon, double lat)
 }
 
 
-static void resetWx(bool stopThread)
+static void resetWx(bool removeUpdaterJob)
 {
-	if (stopThread)
+	if (removeUpdaterJob && _wxUpdaterJobId >= 0)
 	{
-		pthread_mutex_lock(&_wxUpdaterThreadRunLock);
-		_wxUpdaterThreadStop = true;
-		pthread_cond_signal(&_wxUpdaterThreadCond);
-		pthread_mutex_unlock(&_wxUpdaterThreadRunLock);
+		int rc = proteus_BackgroundWorker_removeJob(_wxUpdaterJobId);
+		if (0 != rc)
+		{
+			ERRLOG2("resetWx: Failed to remove bgworker job %d! rc=%d", _wxUpdaterJobId, rc);
+		}
 
-		pthread_join(_wxUpdaterThread, 0);
+		_wxUpdaterJobId = -1;
 	}
 
 	pthread_rwlock_destroy(&_wxGridLock);
-
-	pthread_mutex_destroy(&_wxUpdaterThreadRunLock);
-	pthread_cond_destroy(&_wxUpdaterThreadCond);
-
-	_wxUpdaterThreadStop = false;
 
 	if (_f1Dir)
 	{
@@ -1061,75 +1039,32 @@ static void resetWx(bool stopThread)
 	_gridConf = 0;
 }
 
-static void* wxUpdaterMain()
+
+bool _wxUpdaterUpdate = false;
+
+static int wxUpdaterJob()
 {
-	bool update = false;
-
-	for (;;)
+	const time_t curTime = time(0);
+	struct tm tres;
+	if (&tres != gmtime_r(&curTime, &tres))
 	{
-		const time_t curTime = time(0);
-		struct tm tres;
-		if (&tres != gmtime_r(&curTime, &tres))
-		{
-			ERRLOG("gmtime_r failed!");
-			sleep(5);
+		ERRLOG("wxUpdaterJob: gmtime_r() failed!");
+		return -1;
+	}
 
-			continue;
-		}
+	const int hour = tres.tm_hour;
+	const int min = tres.tm_min;
 
-		const int hour = tres.tm_hour;
-		const int min = tres.tm_min;
-
-		// Attempt to update once every three hours (at 01Z, 04Z, 07Z, 10Z, 13Z, 16Z, 19Z and 22Z), at 15 minutes past the hour.
-		if ((hour % 3 == 1) && (min < 15))
-		{
-			update = true;
-		}
-		else if (min >= 15 && update)
-		{
-			const char* wxDataDir = ((hour % 6 == 4) ? _f1Dir : _f2Dir);
-			updateWxGrid(-1, wxDataDir);
-			update = false;
-		}
-
-
-		const struct timespec waitUntilTime = { .tv_sec = time(0) + 60, .tv_nsec = 0 };
-		if (0 != pthread_mutex_lock(&_wxUpdaterThreadRunLock))
-		{
-			ERRLOG("wxUpdaterMain: pthread_mutex_lock failed!");
-			sleep(1);
-			continue;
-		}
-
-		bool stopThread = false;
-
-		if (_wxUpdaterThreadStop)
-		{
-			goto iter_end;
-		}
-
-		// TODO: Wait until we need to update the grids. Polling with a short time interval here is lazy and causes pointless frequent wakeups.
-		int rc = pthread_cond_timedwait(&_wxUpdaterThreadCond, &_wxUpdaterThreadRunLock, &waitUntilTime);
-
-		if (rc != 0 && rc != ETIMEDOUT)
-		{
-			ERRLOG1("wxUpdaterMain: pthread_cond_timedwait failed with rc=%d", rc);
-			return 0;
-		}
-
-iter_end:
-		stopThread = _wxUpdaterThreadStop;
-
-		if (0 != pthread_mutex_unlock(&_wxUpdaterThreadRunLock))
-		{
-			ERRLOG("wxUpdaterMain: pthread_mutex_unlock failed!");
-		}
-
-		if (stopThread)
-		{
-			ERRLOG("wxUpdaterMain: Thread was commanded to stop.");
-			break;
-		}
+	// Attempt to update once every three hours (at 01Z, 04Z, 07Z, 10Z, 13Z, 16Z, 19Z and 22Z), at 15 minutes past the hour.
+	if ((hour % 3 == 1) && (min < 15))
+	{
+		_wxUpdaterUpdate = true;
+	}
+	else if (min >= 15 && _wxUpdaterUpdate)
+	{
+		const char* wxDataDir = ((hour % 6 == 4) ? _f1Dir : _f2Dir);
+		updateWxGrid(-1, wxDataDir);
+		_wxUpdaterUpdate = false;
 	}
 
 	return 0;

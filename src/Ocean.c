@@ -26,12 +26,12 @@
 #include "proteus_internal.h"
 
 #include "proteus/Ocean.h"
+#include "proteus/BackgroundWorker.h"
 #include "ScalarConv_internal.h"
 #include "Constants.h"
 #include "ErrLog.h"
 
 #define ERRLOG_ID "proteus_Ocean"
-#define UPDATER_THREAD_NAME "proteus_Ocean"
 
 
 // NOTE: This module currently makes some fixed assumptions about the grid dimensions
@@ -65,8 +65,7 @@ static OceanGridPoint* _oceanGrid1 = 0;
 static pthread_rwlock_t _oceanGridLock;
 static time_t _oceanGridPhaseTime = 0;
 
-static pthread_t _oceanUpdaterThread;
-static void* oceanUpdaterMain();
+static int oceanUpdaterJob();
 
 
 static void updateOceanGrid(int grid, const char* oceanDataPath);
@@ -80,7 +79,7 @@ static bool validLonLat(double lon, double lat);
 static void computeOceanDataIce(proteus_OceanData* od);
 
 
-PROTEUS_API int proteus_Ocean_init(const char* f1File, const char* f2File)
+PROTEUS_API int proteus_Ocean_init(const char* f1File, const char* f2File, bool enableBgJobs)
 {
 	if (!f1File || !f2File)
 	{
@@ -127,17 +126,14 @@ PROTEUS_API int proteus_Ocean_init(const char* f1File, const char* f2File)
 
 	ERRLOG2("Ocean grid phase time: %lu (%ld seconds from now).", _oceanGridPhaseTime, (_oceanGridPhaseTime - curTime));
 
-	if (0 != pthread_create(&_oceanUpdaterThread, 0, &oceanUpdaterMain, 0))
+	if (enableBgJobs)
 	{
-		return -2;
+		if (proteus_BackgroundWorker_addJob(&oceanUpdaterJob, 0, 0) < 0)
+		{
+			ERRLOG("Failed to add ocean updater job!");
+			return -2;
+		}
 	}
-
-#if defined(_GNU_SOURCE) && defined(__GLIBC__)
-	if (0 != pthread_setname_np(_oceanUpdaterThread, UPDATER_THREAD_NAME))
-	{
-		ERRLOG1("Couldn't set thread name to %s. Continuing anyway.", UPDATER_THREAD_NAME);
-	}
-#endif
 
 	return ((_oceanGrid0 != 0 && _oceanGrid1 != 0) ? 0 : -1);
 }
@@ -709,38 +705,30 @@ static void computeOceanDataIce(proteus_OceanData* od)
 }
 
 
-static void* oceanUpdaterMain()
+static bool _oceanUpdaterUpdate = false;
+
+static int oceanUpdaterJob()
 {
-	bool update = false;
-
-	for (;;)
+	time_t curTime = time(0);
+	struct tm tres;
+	if (&tres != gmtime_r(&curTime, &tres))
 	{
-		time_t curTime = time(0);
-		struct tm tres;
-		if (&tres != gmtime_r(&curTime, &tres))
-		{
-			ERRLOG("gmtime_r failed!");
-			sleep(5);
+		ERRLOG("oceanUpdaterJob: gmtime_r() failed!");
+		return -1;
+	}
 
-			continue;
-		}
+	const int hour = tres.tm_hour;
 
-		const int hour = tres.tm_hour;
-
-		// Attempt to update once every twelve hours (at 18Z and 06Z).
-		if (hour == 17 || hour == 5)
-		{
-			update = true;
-		}
-		else if (update && (hour == 18 || hour == 6))
-		{
-			const char* oceanDataPath = ((hour == 18) ? _f1File : _f2File);
-			updateOceanGrid(-1, oceanDataPath);
-			update = false;
-		}
-
-		// TODO: Sleep until we need to update the grids. Polling with a short sleep here is lazy and causes pointless frequent wakeups.
-		sleep(60);
+	// Attempt to update once every twelve hours (at 18Z and 06Z).
+	if (hour == 17 || hour == 5)
+	{
+		_oceanUpdaterUpdate = true;
+	}
+	else if (_oceanUpdaterUpdate && (hour == 18 || hour == 6))
+	{
+		const char* oceanDataPath = ((hour == 18) ? _f1File : _f2File);
+		updateOceanGrid(-1, oceanDataPath);
+		_oceanUpdaterUpdate = false;
 	}
 
 	return 0;

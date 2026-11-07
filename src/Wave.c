@@ -26,12 +26,11 @@
 #include "proteus_internal.h"
 
 #include "proteus/Wave.h"
-#include "proteus/ScalarConv.h"
+#include "proteus/BackgroundWorker.h"
 #include "Constants.h"
 #include "ErrLog.h"
 
 #define ERRLOG_ID "proteus_Wave"
-#define UPDATER_THREAD_NAME "proteus_Wave"
 
 
 // NOTE: This module currently makes some fixed assumptions about the grid dimensions
@@ -60,8 +59,7 @@ static WaveGridPoint* _waveGrid1 = 0;
 static pthread_rwlock_t _waveGridLock;
 static time_t _waveGridPhaseTime = 0;
 
-static pthread_t _waveUpdaterThread;
-static void* waveUpdaterMain();
+static int waveUpdaterJob();
 
 
 static void updateWaveGrid(int grid, const char* waveDataPath);
@@ -73,7 +71,7 @@ static int getXYIndex(int x, int y);
 static bool validLonLat(double lon, double lat);
 
 
-PROTEUS_API int proteus_Wave_init(const char* f1File, const char* f2File)
+PROTEUS_API int proteus_Wave_init(const char* f1File, const char* f2File, bool enableBgJobs)
 {
 	if (!f1File || !f2File)
 	{
@@ -120,17 +118,14 @@ PROTEUS_API int proteus_Wave_init(const char* f1File, const char* f2File)
 
 	ERRLOG2("Wave grid phase time: %lu (%ld seconds from now).", _waveGridPhaseTime, (_waveGridPhaseTime - curTime));
 
-	if (0 != pthread_create(&_waveUpdaterThread, 0, &waveUpdaterMain, 0))
+	if (enableBgJobs)
 	{
-		return -2;
+		if (proteus_BackgroundWorker_addJob(&waveUpdaterJob, 0, 0) < 0)
+		{
+			ERRLOG("Failed to add wave updater job!");
+			return -2;
+		}
 	}
-
-#if defined(_GNU_SOURCE) && defined(__GLIBC__)
-	if (0 != pthread_setname_np(_waveUpdaterThread, UPDATER_THREAD_NAME))
-	{
-		ERRLOG1("Couldn't set thread name to %s. Continuing anyway.", UPDATER_THREAD_NAME);
-	}
-#endif
 
 	return ((_waveGrid0 != 0 && _waveGrid1 != 0) ? 0 : -1);
 }
@@ -544,38 +539,30 @@ static bool validLonLat(double lon, double lat)
 }
 
 
-static void* waveUpdaterMain()
+static bool _waveUpdaterUpdate = false;
+
+static int waveUpdaterJob()
 {
-	bool update = false;
-
-	for (;;)
+	time_t curTime = time(0);
+	struct tm tres;
+	if (&tres != gmtime_r(&curTime, &tres))
 	{
-		time_t curTime = time(0);
-		struct tm tres;
-		if (&tres != gmtime_r(&curTime, &tres))
-		{
-			ERRLOG("gmtime_r failed!");
-			sleep(5);
+		ERRLOG("waveUpdaterJob: gmtime_r() failed!");
+		return -1;
+	}
 
-			continue;
-		}
+	const int hour = tres.tm_hour;
 
-		const int hour = tres.tm_hour;
-
-		// Attempt to update once every twelve hours (at 18Z and 06Z).
-		if (hour == 17 || hour == 5)
-		{
-			update = true;
-		}
-		else if (update && (hour == 18 || hour == 6))
-		{
-			const char* waveDataPath = ((hour == 18) ? _f1File : _f2File);
-			updateWaveGrid(-1, waveDataPath);
-			update = false;
-		}
-
-		// TODO: Sleep until we need to update the grids. Polling with a short sleep here is lazy and causes pointless frequent wakeups.
-		sleep(60);
+	// Attempt to update once every twelve hours (at 18Z and 06Z).
+	if (hour == 17 || hour == 5)
+	{
+		_waveUpdaterUpdate = true;
+	}
+	else if (_waveUpdaterUpdate && (hour == 18 || hour == 6))
+	{
+		const char* waveDataPath = ((hour == 18) ? _f1File : _f2File);
+		updateWaveGrid(-1, waveDataPath);
+		_waveUpdaterUpdate = false;
 	}
 
 	return 0;

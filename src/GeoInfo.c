@@ -25,11 +25,11 @@
 #include "proteus_internal.h"
 
 #include "proteus/GeoInfo.h"
+#include "proteus/BackgroundWorker.h"
 #include "Decompress.h"
 #include "ErrLog.h"
 
 #define ERRLOG_ID "proteus_GeoInfo"
-#define GRID_PRUNER_THREAD_NAME "proteus_GeoInfo"
 
 
 #define SQ_DEG_GRID_SIZE (450 * 3600)
@@ -58,11 +58,10 @@ static int getLonLatIndex(int lon, int lat);
 static void loadSquareDegree(SquareDegree* sd, int ilon, int ilat);
 static bool sdGridIsWater(const proteus_GeoPos* pos, const uint8_t* grid);
 
-static pthread_t _gridPrunerThread;
-static void* gridPrunerMain();
+static int gridPrunerJob();
 
 
-PROTEUS_API int proteus_GeoInfo_init(const char* dataDir)
+PROTEUS_API int proteus_GeoInfo_init(const char* dataDir, bool enableBgJobs)
 {
 	if (!dataDir)
 	{
@@ -97,18 +96,14 @@ PROTEUS_API int proteus_GeoInfo_init(const char* dataDir)
 		}
 	}
 
-	if (0 != pthread_create(&_gridPrunerThread, 0, &gridPrunerMain, 0))
+	if (enableBgJobs)
 	{
-		ERRLOG("Failed to create grid pruner thread!");
-		return -1;
+		if (proteus_BackgroundWorker_addJob(&gridPrunerJob, 6 /* once every 64 base iterations */, 0) < 0)
+		{
+			ERRLOG("Failed to add grid pruner job!");
+			return -1;
+		}
 	}
-
-#if defined(_GNU_SOURCE) && defined(__GLIBC__)
-	if (0 != pthread_setname_np(_gridPrunerThread, GRID_PRUNER_THREAD_NAME))
-	{
-		ERRLOG1("Couldn't set thread name to %s. Continuing anyway.", GRID_PRUNER_THREAD_NAME);
-	}
-#endif
 
 	return 0;
 }
@@ -279,68 +274,63 @@ static bool sdGridIsWater(const proteus_GeoPos* pos, const uint8_t* grid)
 }
 
 
-static void* gridPrunerMain()
+static int gridPrunerJob()
 {
-	for (;;)
+	ERRLOG("Grid pruner job starting...");
+
+	unsigned int loadedCount = 0;
+	unsigned int griddedCount = 0;
+	unsigned int retainedCount = 0;
+
+	const time_t expireTime = time(0) - GRID_PRUNER_EXPIRY;
+
+	for (int i = 0; i < NUM_GRIDS; i++)
 	{
-		sleep(GRID_PRUNER_INTERVAL);
+		SquareDegree* sd = _grids + i;
+		uint8_t* gridToFree = 0;
 
-		ERRLOG("Grid pruner starting...");
-
-		unsigned int loadedCount = 0;
-		unsigned int griddedCount = 0;
-		unsigned int retainedCount = 0;
-
-		const time_t expireTime = time(0) - GRID_PRUNER_EXPIRY;
-
-		for (int i = 0; i < NUM_GRIDS; i++)
+		pthread_mutex_t* l = &sd->lock;
+		if (0 != pthread_mutex_lock(l))
 		{
-			SquareDegree* sd = _grids + i;
-			uint8_t* gridToFree = 0;
+			ERRLOG("gridPrunerJob: Failed to lock mutex!");
+			break;
+		}
 
-			pthread_mutex_t* l = &sd->lock;
-			if (0 != pthread_mutex_lock(l))
+		if (sd->loaded)
+		{
+			loadedCount++;
+
+			if (sd->grid)
 			{
-				ERRLOG("gridPrunerMain: Failed to lock mutex!");
-				break;
-			}
+				griddedCount++;
 
-			if (sd->loaded)
-			{
-				loadedCount++;
-
-				if (sd->grid)
+				if (sd->lastUsed < expireTime)
 				{
-					griddedCount++;
-
-					if (sd->lastUsed < expireTime)
-					{
-						// Grid hasn't been referenced recently, so free it.
-						gridToFree = sd->grid;
-						sd->grid = 0;
-						sd->loaded = false;
-					}
-					else
-					{
-						retainedCount++;
-					}
+					// Grid hasn't been referenced recently, so free it.
+					gridToFree = sd->grid;
+					sd->grid = 0;
+					sd->loaded = false;
 				}
-			}
-
-			if (0 != pthread_mutex_unlock(l))
-			{
-				ERRLOG("gridPrunerMain: Failed to unlock mutex!");
-				break;
-			}
-
-			if (gridToFree)
-			{
-				free(gridToFree);
+				else
+				{
+					retainedCount++;
+				}
 			}
 		}
 
-		ERRLOG3("Grid pruner done. loaded=%u, gridded=%u, retained=%u", loadedCount, griddedCount, retainedCount);
+		if (0 != pthread_mutex_unlock(l))
+		{
+			ERRLOG("gridPrunerJob: Failed to unlock mutex!");
+			break;
+		}
+
+		if (gridToFree)
+		{
+			free(gridToFree);
+		}
 	}
+
+	ERRLOG3("Grid pruner job done. loaded=%u, gridded=%u, retained=%u", loadedCount, griddedCount, retainedCount);
 
 	return 0;
 }

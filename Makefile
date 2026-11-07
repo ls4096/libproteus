@@ -5,6 +5,7 @@ tests: proteus_tests proteus_tests_static libproteus
 
 
 LIB_OBJS = \
+	src/BackgroundWorker.o \
 	src/Celestial.o \
 	src/Compass.o \
 	src/Decompress.o \
@@ -20,6 +21,7 @@ LIB_OBJS = \
 
 TESTS_OBJS = \
 	tests/tests_main.o \
+	tests/test_BackgroundWorker.o \
 	tests/test_Celestial.o \
 	tests/test_Compass.o \
 	tests/test_GeoInfo.o \

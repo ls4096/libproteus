@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2026 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -23,7 +23,7 @@
 
 int test_GeoInfo_run()
 {
-	if (0 != proteus_GeoInfo_init(GEO_INFO_DATA_DIR))
+	if (0 != proteus_GeoInfo_init(GEO_INFO_DATA_DIR, true))
 	{
 		return 1;
 	}

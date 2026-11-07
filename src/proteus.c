@@ -21,7 +21,7 @@
 #define PROTEUS_VERSION_MAJOR 0
 #define PROTEUS_VERSION_MINOR 11
 #define PROTEUS_VERSION_PATCH 0
-#define PROTEUS_VERSION_EXTRA "-dev"
+#define PROTEUS_VERSION_EXTRA ""
 
 #define STRX(x) #x
 #define STR(x) STRX(x)

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020-2024 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2026 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -70,12 +70,15 @@ typedef struct
  * 	sourceDataGrid [in]: the source data grid resolution
  * 	f1Dir [in]: the path to the directory with the first forecast point data
  * 	f2Dir [in]: the path to the directory with the second forecast point data
+ * 	enableBgJobs [in]: whether to enable background jobs (such as periodic grid updates)
+ *	                   Note that this requires the BackgroundWorker to have been initialized first.
+ *	                   See proteus_BackgroundWorker_init().
  *
  * Returns
  * 	0, on success
  * 	any other value, on failure
  */
-PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, const char* f2Dir);
+PROTEUS_API int proteus_Weather_init(int sourceDataGrid, const char* f1Dir, const char* f2Dir, bool enableBgJobs);
 
 /**
  * Provides weather information at the given geographical position.

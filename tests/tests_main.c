@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2020 ls4096 <ls4096@8bitbyte.ca>
+ * Copyright (C) 2020-2026 ls4096 <ls4096@8bitbyte.ca>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,7 @@
 typedef int (*test_func)(void);
 
 static const char* TEST_NAMES[] = {
+	"BackgroundWorker",
 	"Celestial",
 	"Compass",
 	"GeoInfo",
@@ -35,6 +36,7 @@ static const char* TEST_NAMES[] = {
 };
 
 static const test_func TEST_FUNCS[] = {
+	&test_BackgroundWorker_run,
 	&test_Celestial_run,
 	&test_Compass_run,
 	&test_GeoInfo_run,
